@@ -7,9 +7,17 @@ import { NumberTicker } from "./components/NumberTicker";
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
-  const totalChats = await prisma.chat.count();
-  const totalMessages = await prisma.message.count();
-  const insights = await prisma.crmInsight.findMany();
+  let totalChats = 0;
+  let totalMessages = 0;
+  let insights: any[] = [];
+
+  try {
+    totalChats = await prisma.chat.count();
+    totalMessages = await prisma.message.count();
+    insights = await prisma.crmInsight.findMany();
+  } catch (error) {
+    console.warn("Database connection failed on Vercel. Showing fallback dummy data.");
+  }
 
   // Calculate Metrics
   const validStages = insights.filter(i => i.sales_stage);
