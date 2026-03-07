@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Chat {
+  chat_id            String       @id
+  phone_number       String?
+  contact_name       String?
+  chat_type          String?
+  first_message_date String?
+  last_message_date  String?
+  total_messages     Int?
+  total_incoming     Int?
+  total_outgoing     Int?
+  total_text         Int?
+  total_images       Int?
+  total_voice        Int?
+  total_documents    Int?
+  total_videos       Int?
+  
+  crm_insights       CrmInsight?
+  messages           Message[]
+
+  @@map("chats")
+}
+
+model CrmInsight {
+  chat_id                    String  @id
+  products_mentioned         String?
+  prices_mentioned           String?
+  phone_numbers_in_chat      String?
+  appointment_dates          String?
+  sales_stage                String?
+  sentiment                  String?
+  key_topics                 String?
+  conversation_summary       String?
+  is_potential_customer      Int?    @default(0)
+  has_appointment            Int?    @default(0)
+  has_price_discussion       Int?    @default(0)
+  last_interaction_direction String?
+  response_ratio             Float?
+  
+  chat                       Chat    @relation(fields: [chat_id], references: [chat_id])
+
+  @@map("crm_insights")
+}
+
+model Message {
+  message_id   Int     @id @default(autoincrement())
+  chat_id      String?
+  direction    String?
+  date         String?
+  time         String?
+  message_type String?
+  content      String?
+  read_status  String?
+  
+  chat         Chat?   @relation(fields: [chat_id], references: [chat_id])
+
+  @@map("messages")
+}
+
+model Service {
+  id            String   @id @default(cuid())
+  category      String
+  name          String
+  listPrice     Float?
+  campaignPrice Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Faq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model QuickReply {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Script {
+  id        String   @id @default(cuid())
+  type      String
+  name      String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

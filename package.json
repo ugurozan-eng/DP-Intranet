@@ -9,17 +9,33 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^0.0.18",
+    "@ai-sdk/react": "^3.0.114",
+    "@google/generative-ai": "^0.24.1",
+    "@nivo/bar": "^0.99.0",
+    "@nivo/core": "^0.99.0",
+    "@nivo/pie": "^0.99.0",
+    "@prisma/client": "^6.4.1",
+    "ai": "^3.1.28",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.35.1",
+    "lucide-react": "^0.577.0",
     "next": "16.1.6",
+    "nivo": "^0.31.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "recharts": "^3.7.0",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
+    "@prisma/config": "^7.4.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "prisma": "^6.4.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
