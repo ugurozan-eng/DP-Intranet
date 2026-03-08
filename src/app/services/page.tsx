@@ -14,6 +14,18 @@ export default async function ServicesPage() {
 
     const categories = Array.from(new Set(services.map(s => s.category)));
 
+    categories.sort((a, b) => {
+        const getWeight = (cat: string) => {
+            if (cat === "Dolgu") return 1;
+            if (cat.includes("Botoks")) return 2;
+            return 3;
+        };
+        const wA = getWeight(a);
+        const wB = getWeight(b);
+        if (wA !== wB) return wA - wB;
+        return a.localeCompare(b);
+    });
+
     return (
         <div className="p-8 max-w-7xl mx-auto">
             <div className="flex justify-between items-end mb-8">
