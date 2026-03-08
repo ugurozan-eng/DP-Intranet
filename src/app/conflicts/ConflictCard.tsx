@@ -10,9 +10,10 @@ type ConflictCardProps = {
     phoneNumber: string;
     lastDate: string;
     prices: string[];
+    products: string[];
 };
 
-export function ConflictCard({ chatId, contactName, phoneNumber, lastDate, prices }: ConflictCardProps) {
+export function ConflictCard({ chatId, contactName, phoneNumber, lastDate, prices, products }: ConflictCardProps) {
     const [isPending, startTransition] = useTransition();
     const [editablePrices, setEditablePrices] = useState<string[]>(prices);
     const [newPrice, setNewPrice] = useState("");
@@ -45,6 +46,18 @@ export function ConflictCard({ chatId, contactName, phoneNumber, lastDate, price
                     {lastDate}
                 </div>
             </div>
+            {products && products.length > 0 && (
+                <div className="px-6 py-3 bg-indigo-50/50 border-b border-slate-100 flex items-center gap-2 overflow-x-auto">
+                    <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest shrink-0">Bahsedilenler:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                        {products.map((prod, i) => (
+                            <span key={i} className="px-2.5 py-0.5 bg-white border border-indigo-100 shadow-sm text-indigo-700 text-xs font-semibold rounded-full capitalize">
+                                {prod}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
             <div className="p-6">
                 <p className="text-sm font-medium text-slate-500 mb-3">Detected Prices (Click <Check className="inline h-4 w-4 bg-emerald-100 text-emerald-600 rounded-sm mb-1" /> to select the correct one or <X className="inline h-4 w-4 bg-red-100 text-red-600 rounded-sm mb-1" /> to remove):</p>
                 <div className="flex flex-wrap gap-3 mb-4">

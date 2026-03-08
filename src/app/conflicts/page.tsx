@@ -50,6 +50,11 @@ export default async function ConflictsPage() {
             <div className="grid gap-6">
                 {conflicts.map((conflict) => {
                     const prices = JSON.parse(conflict.prices_mentioned || "[]") as string[];
+                    let products: string[] = [];
+                    try {
+                        products = JSON.parse(conflict.products_mentioned || "[]");
+                    } catch { }
+
                     return (
                         <ConflictCard
                             key={conflict.chat_id}
@@ -58,6 +63,7 @@ export default async function ConflictsPage() {
                             phoneNumber={conflict.chat?.phone_number || conflict.chat_id}
                             lastDate={conflict.chat?.last_message_date || ""}
                             prices={prices}
+                            products={products}
                         />
                     );
                 })}
