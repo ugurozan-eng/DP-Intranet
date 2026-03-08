@@ -14,3 +14,13 @@ export async function deleteService(id: string) {
     await prisma.service.delete({ where: { id } });
     revalidatePath("/services");
 }
+
+export async function updateServicePrice(id: string, type: 'listPrice' | 'campaignPrice', value: number) {
+    await prisma.service.update({
+        where: { id },
+        data: {
+            [type]: value
+        }
+    });
+    revalidatePath("/services");
+}

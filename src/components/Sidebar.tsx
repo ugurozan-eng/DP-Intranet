@@ -12,12 +12,10 @@ import {
 
 const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Services & Prices', href: '/services', icon: Briefcase },
-    { name: 'Scripts & Replies', href: '/scripts', icon: FileText },
+    { name: 'İşlemler / Fiyatlar', href: '/services', icon: Briefcase },
+    { name: 'Hızlı Yanıtlar', href: '/scripts', icon: FileText },
     { name: 'AI Assistant', href: '/ai-chat', icon: MessageSquare },
     { name: 'FAQ Management', href: '/faqs', icon: HelpCircle },
-    { name: 'Conflicts', href: '/conflicts', icon: AlertTriangle },
-    { name: 'Complaint Mgmt', href: '/complaints', icon: ShieldAlert },
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
