@@ -15,11 +15,11 @@ import {
 
 const navigation = [
     { name: 'Duyurular / Kampanyalar', href: '/', icon: Megaphone },
-    { name: 'Çalışanlarımız', href: '/employees', icon: Users },
     { name: 'İşlemler / Fiyatlar', href: '/services', icon: Briefcase },
+    { name: 'Bilgi / Satış Scriptleri', href: '/product-scripts', icon: MessageSquare },
     { name: 'Hızlı Yanıtlar', href: '/scripts', icon: FileText },
     { name: 'Formlar', href: '/forms', icon: ClipboardList },
-    { name: 'AI Assistant', href: '/ai-chat', icon: MessageSquare },
+    { name: 'Çalışanlarımız', href: '/employees', icon: Users },
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
