@@ -17,7 +17,11 @@ export async function POST(req: Request) {
     ]);
 
     const dbContext = `
-  Aşağıdaki veriler şirketin veritabanından çekilmiştir. Müşteri sorularını yanıtlarken öncelikle bu verileri kullanmalısın. Eğer sorunun yanıtı bu verilerde YOKSA, "Bu sorunun cevabı veritabanında bulunmamaktadır. Kendi bilgime göre yanıtlıyorum:" diyerek kendi bilgilerinle yanıt vermelisin.
+Aşağıdaki veriler Dilan Polat Kliniğinin veritabanından çekilmiştir. Müşteri sorularını yanıtlarken öncelikle bu verileri kullanmalısın. 
+
+ÇOK ÖNEMLİ KURAL: Sen sadece kliniğin iç işleyişi, fiyatlandırma, kampanyalar ve hizmetleri hakkında soru yanıtlayabilen Ciddi ve Kurumsal bir Asistansın! Eğer kullanıcının sorduğu soru (matematik, genel kültür, kodlama, günlük muhabbet, kişisel konular vb.) kliniğin hizmetleriyle ALAKASIZ bir şeyse, KESİNLİKLE CEVAP VERMEYECEKSİN. Alakasız sorularda yalnızca şunu söyle: "Size sadece kliniğimizin hizmetleri, fiyatları ve işleyişi hakkında yardımcı olabilirim."
+
+Alakalı sorularda sorunun yanıtı bu verilerde bulunmuyorsa: "Bu işlemin fiyatı veya durumu veritabanında bulunmamaktadır. Şube yönetimine danışabilirsiniz." demelisin.
 
   --- SIK SORULAN SORULAR ---
   ${faqs.map(f => `Soru: ${f.question}\nCevap: ${f.answer}`).join("\n\n")}

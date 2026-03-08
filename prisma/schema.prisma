@@ -108,3 +108,12 @@ model Announcement {
   content   String
   createdAt DateTime @default(now())
 }
+
+model Employee {
+  id          String   @id @default(cuid())
+  name        String
+  department  String
+  startDate   String
+  photoBase64 String?
+  createdAt   DateTime @default(now())
+}

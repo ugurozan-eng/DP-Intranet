@@ -1,38 +1,44 @@
 import Image from 'next/image';
+import { prisma } from "@/lib/prisma";
+import { EmployeeForm, DeleteEmployeeButton } from "./ClientComponents";
 
-const employees = [
-    {
-        name: "Esma Sevinç Eravcı",
-        department: "Klinik / İdari Müdür",
-        startDate: "04.01.2026",
-        image: "/team/esma.png"
-    }
-];
+export const dynamic = 'force-dynamic';
 
-export default function EmployeesPage() {
+export default async function EmployeesPage() {
+    const employees = await prisma.employee.findMany({
+        orderBy: {
+            createdAt: 'asc'
+        }
+    });
+
     return (
-        <div className="p-8 max-w-7xl mx-auto">
-            <div className="mb-10">
-                <h1 className="text-3xl font-bold text-slate-900">Çalışanlarımız</h1>
-                <p className="text-slate-500 mt-2">
-                    Klinik ekibimiz ve yöneticilerimiz
-                </p>
+        <div className="p-8 max-w-7xl mx-auto flex flex-col min-h-screen">
+            <div className="flex justify-between items-end mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900">Çalışanlarımız</h1>
+                    <p className="text-slate-500 mt-2">
+                        Klinik ekibimiz ve yöneticilerimiz
+                    </p>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {employees.map((emp, idx) => (
-                    <div key={idx} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow">
-                        <div className="relative w-full h-80 bg-slate-100">
-                            {emp.image ? (
+            <EmployeeForm />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-10">
+                {employees.map((emp) => (
+                    <div key={emp.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow group relative">
+                        <DeleteEmployeeButton id={emp.id} />
+                        <div className="relative w-full h-80 bg-slate-100 flex items-center justify-center">
+                            {emp.photoBase64 ? (
                                 <Image
-                                    src={emp.image}
+                                    src={emp.photoBase64}
                                     alt={emp.name}
                                     fill
                                     className="object-cover object-top"
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 />
                             ) : (
-                                <div className="absolute inset-0 flex items-center justify-center text-slate-400">
+                                <div className="text-slate-400">
                                     Fotoğraf Yok
                                 </div>
                             )}
@@ -50,6 +56,12 @@ export default function EmployeesPage() {
                         </div>
                     </div>
                 ))}
+
+                {employees.length === 0 && (
+                    <div className="col-span-full text-center py-16 text-slate-500 bg-white rounded-2xl border border-dashed border-slate-300">
+                        Henüz personel eklenmemiş. Yukarıdaki formu kullanarak ekleyebilirsiniz.
+                    </div>
+                )}
             </div>
         </div>
     );
