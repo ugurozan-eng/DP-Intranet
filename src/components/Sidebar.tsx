@@ -7,15 +7,19 @@ import {
     FileText,
     AlertTriangle,
     Briefcase,
-    ShieldAlert
+    ShieldAlert,
+    Users,
+    ClipboardList,
+    Megaphone
 } from "lucide-react";
 
 const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { name: 'Duyurular / Kampanyalar', href: '/', icon: Megaphone },
+    { name: 'Çalışanlarımız', href: '/employees', icon: Users },
     { name: 'İşlemler / Fiyatlar', href: '/services', icon: Briefcase },
     { name: 'Hızlı Yanıtlar', href: '/scripts', icon: FileText },
+    { name: 'Formlar', href: '/forms', icon: ClipboardList },
     { name: 'AI Assistant', href: '/ai-chat', icon: MessageSquare },
-    { name: 'FAQ Management', href: '/faqs', icon: HelpCircle },
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
