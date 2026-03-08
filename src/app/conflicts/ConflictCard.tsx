@@ -1,7 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { resolveConflict } from "./actions";
+import { Plus, X, Check } from "lucide-react";
 
 type ConflictCardProps = {
     chatId: string;
@@ -13,11 +14,24 @@ type ConflictCardProps = {
 
 export function ConflictCard({ chatId, contactName, phoneNumber, lastDate, prices }: ConflictCardProps) {
     const [isPending, startTransition] = useTransition();
+    const [editablePrices, setEditablePrices] = useState<string[]>(prices);
+    const [newPrice, setNewPrice] = useState("");
 
     const handleResolve = (price: string) => {
         startTransition(async () => {
             await resolveConflict(chatId, price);
         });
+    };
+
+    const handleRemove = (idx: number) => {
+        setEditablePrices(prev => prev.filter((_, i) => i !== idx));
+    };
+
+    const handleAdd = () => {
+        if (newPrice.trim() && !editablePrices.includes(newPrice.trim())) {
+            setEditablePrices(prev => [...prev, newPrice.trim()]);
+            setNewPrice("");
+        }
     };
 
     return (
@@ -32,18 +46,57 @@ export function ConflictCard({ chatId, contactName, phoneNumber, lastDate, price
                 </div>
             </div>
             <div className="p-6">
-                <p className="text-sm font-medium text-slate-500 mb-3">Detected Prices (Click to select the correct one):</p>
-                <div className="flex flex-wrap gap-3">
-                    {prices.map((price, idx) => (
-                        <button
-                            key={idx}
-                            onClick={() => handleResolve(price)}
-                            disabled={isPending}
-                            className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 hover:border-blue-600 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {price}
-                        </button>
+                <p className="text-sm font-medium text-slate-500 mb-3">Detected Prices (Click <Check className="inline h-4 w-4 bg-emerald-100 text-emerald-600 rounded-sm mb-1" /> to select the correct one or <X className="inline h-4 w-4 bg-red-100 text-red-600 rounded-sm mb-1" /> to remove):</p>
+                <div className="flex flex-wrap gap-3 mb-4">
+                    {editablePrices.map((price, idx) => (
+                        <div key={idx} className="flex items-center gap-1 px-1 py-1 bg-slate-50 border border-slate-200 rounded-lg group">
+                            <input
+                                type="text"
+                                value={price}
+                                onChange={(e) => {
+                                    const newPrices = [...editablePrices];
+                                    newPrices[idx] = e.target.value;
+                                    setEditablePrices(newPrices);
+                                }}
+                                className="px-2 py-1 bg-transparent text-sm font-medium text-slate-700 outline-none w-24 shrink-0 focus:border-blue-500 border border-transparent rounded-md focus:bg-white"
+                            />
+                            <button
+                                onClick={() => handleResolve(price)}
+                                disabled={isPending}
+                                title="Set as correct price"
+                                className="p-1.5 text-slate-400 hover:bg-emerald-100 hover:text-emerald-700 rounded-md transition-colors disabled:opacity-50"
+                            >
+                                <Check size={16} strokeWidth={3} />
+                            </button>
+                            <button
+                                onClick={() => handleRemove(idx)}
+                                title="Remove price"
+                                className="p-1.5 text-slate-400 hover:bg-red-100 hover:text-red-700 rounded-md transition-colors disabled:opacity-50"
+                            >
+                                <X size={16} strokeWidth={3} />
+                            </button>
+                        </div>
                     ))}
+                </div>
+
+                {/* Add new price input */}
+                <div className="flex items-center gap-2 max-w-[250px]">
+                    <input
+                        type="text"
+                        value={newPrice}
+                        onChange={(e) => setNewPrice(e.target.value)}
+                        placeholder="Yeni fiyat ekle..."
+                        onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                        className="flex-1 px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                        onClick={handleAdd}
+                        disabled={!newPrice.trim()}
+                        className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors disabled:opacity-50"
+                        title="Ekle"
+                    >
+                        <Plus size={18} strokeWidth={2.5} />
+                    </button>
                 </div>
             </div>
         </div>
