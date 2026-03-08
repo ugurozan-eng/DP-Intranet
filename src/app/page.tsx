@@ -3,6 +3,7 @@ import DashboardCharts from "./DashboardCharts";
 import { MessageSquare, Users, TrendingUp, Handshake, Info, ArrowUpRight } from "lucide-react";
 import * as motion from "framer-motion/client";
 import { NumberTicker } from "./components/NumberTicker";
+import RealFaqs from "./components/RealFaqs";
 
 export const dynamic = 'force-dynamic';
 
@@ -233,6 +234,8 @@ export default async function DashboardPage() {
           serviceData={topServices}
         />
       </div>
+
+      <RealFaqs />
     </div>
   );
 }
