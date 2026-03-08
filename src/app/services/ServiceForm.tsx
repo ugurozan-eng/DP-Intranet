@@ -25,7 +25,7 @@ export function ServiceForm() {
                 onClick={() => setIsOpen(true)}
                 className="px-4 py-2 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors"
             >
-                + Yeni Hizmet Ekle
+                + Sayfaya İşlem Ekle
             </button>
         );
     }
@@ -33,17 +33,14 @@ export function ServiceForm() {
     return (
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8 w-full max-w-lg">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg text-slate-800">Yeni Hizmet / Fiyat Ekle</h3>
+                <h3 className="font-bold text-lg text-slate-800">Yeni İşlem Ekle</h3>
                 <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
+                <input type="hidden" name="category" value="Diğer İşlemler" />
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
-                    <input required name="category" type="text" placeholder="Örn: Lazer Epilasyon" className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900" />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Hizmet Adı</label>
-                    <input required name="name" type="text" placeholder="Örn: Tüm Vücut + Yüz" className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900" />
+                    <label className="block text-sm font-medium text-slate-700 mb-1">İşlem</label>
+                    <input required name="name" type="text" placeholder="Örn: Tüm Vücut Lazer" className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div>

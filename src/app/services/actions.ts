@@ -24,3 +24,11 @@ export async function updateServicePrice(id: string, type: 'listPrice' | 'campai
     });
     revalidatePath("/services");
 }
+
+export async function updateServiceName(id: string, name: string) {
+    await prisma.service.update({
+        where: { id },
+        data: { name }
+    });
+    revalidatePath("/services");
+}

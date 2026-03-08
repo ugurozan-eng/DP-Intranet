@@ -47,7 +47,6 @@ export default async function ServicesPage() {
                                     <th className="px-6 py-3 font-medium">Hizmet Adı</th>
                                     <th className="px-6 py-3 font-medium w-48 hidden sm:table-cell">Liste Fiyatı</th>
                                     <th className="px-6 py-3 font-medium w-48">Kampanyalı Fiyat</th>
-                                    <th className="px-6 py-3 font-medium w-16"></th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">

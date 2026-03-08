@@ -10,10 +10,10 @@ export function DeleteServiceButton({ id }: { id: string }) {
         <button
             onClick={() => startTransition(() => deleteService(id))}
             disabled={isPending}
-            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-            title="Delete Service"
+            className="p-1.5 text-red-500 hover:bg-red-100 rounded-md transition-colors disabled:opacity-50"
+            title="Sil"
         >
-            <Trash2 size={18} />
+            <Trash2 size={14} />
         </button>
     );
 }
