@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { addQuickReply, deleteQuickReply } from "./actions";
 import { Trash2, Copy, Check, Search } from "lucide-react";
 
-export function QuickRepliesView({ quickReplies }: { quickReplies: any[] }) {
+export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], user: any }) {
     const [searchQuery, setSearchQuery] = useState("");
 
     const filteredReplies = quickReplies.filter(reply => {
@@ -25,7 +25,7 @@ export function QuickRepliesView({ quickReplies }: { quickReplies: any[] }) {
                         className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
-                <QuickReplyForm />
+                {user && <QuickReplyForm />}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -35,8 +35,12 @@ export function QuickRepliesView({ quickReplies }: { quickReplies: any[] }) {
                             {reply.title}
                             <div className="absolute top-1/2 -translate-y-1/2 right-2 flex opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-sm border border-slate-200 rounded-md">
                                 <CopyBtn text={reply.content} />
-                                <div className="w-px bg-slate-200"></div>
-                                <DelBtn id={reply.id} />
+                                {user && (
+                                    <>
+                                        <div className="w-px bg-slate-200"></div>
+                                        <DelBtn id={reply.id} />
+                                    </>
+                                )}
                             </div>
                         </div>
                         <div className="p-4 flex-1">

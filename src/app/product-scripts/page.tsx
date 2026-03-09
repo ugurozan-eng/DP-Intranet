@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { ScriptForm, EditableScriptRow } from "./ClientComponents";
+import { getUser } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProductScriptsPage() {
+    const user = await getUser();
     const scripts = await prisma.script.findMany({
         orderBy: {
             createdAt: 'asc'
@@ -21,7 +23,7 @@ export default async function ProductScriptsPage() {
                 </div>
             </div>
 
-            <ScriptForm />
+            {user && <ScriptForm />}
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden pb-10">
                 <table className="w-full text-left border-collapse table-fixed">
@@ -33,7 +35,7 @@ export default async function ProductScriptsPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {scripts.map(s => (
-                            <EditableScriptRow key={s.id} script={s} />
+                            <EditableScriptRow key={s.id} script={s} user={user} />
                         ))}
 
                         {scripts.length === 0 && (

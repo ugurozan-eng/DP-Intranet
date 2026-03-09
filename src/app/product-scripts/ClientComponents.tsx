@@ -88,12 +88,13 @@ export function DeleteScriptButton({ id }: { id: string }) {
     );
 }
 
-export function EditableScriptRow({ script }: { script: any }) {
+export function EditableScriptRow({ script, user }: { script: any, user: any }) {
     const [name, setName] = useState(script.name);
     const [content, setContent] = useState(script.content);
     const [isPending, startTransition] = useTransition();
 
     const handleNameBlur = (val: string) => {
+        if (!user) return;
         const trimmed = val.trim();
         if (!trimmed || trimmed === script.name) {
             setName(script.name);
@@ -106,6 +107,7 @@ export function EditableScriptRow({ script }: { script: any }) {
     };
 
     const handleContentBlur = (val: string) => {
+        if (!user) return;
         const trimmed = val.trim();
         if (!trimmed || trimmed === script.content) {
             setContent(script.content);
@@ -126,21 +128,26 @@ export function EditableScriptRow({ script }: { script: any }) {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             onBlur={(e) => handleNameBlur(e.target.value)}
+                            readOnly={!user}
                             rows={2}
-                            className="bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white rounded outline-none text-slate-900 font-bold px-2 py-1 w-full transition-all focus:ring-2 focus:ring-blue-100 resize-none overflow-hidden"
+                            className={`px-2 py-1 w-full transition-all rounded outline-none text-slate-900 font-bold resize-none overflow-hidden ${user ? 'bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100' : 'bg-transparent border-transparent'}`}
                         />
                         {isPending && <Loader2 size={14} className="animate-spin text-slate-400 shrink-0" />}
                     </div>
-                    <div className="absolute -left-4 top-0 hidden sm:flex items-center gap-1 bg-slate-50/80 px-1 py-1 rounded-md shadow-sm border border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <CopyBtn text={name} />
-                        <div className="w-px h-4 bg-slate-200"></div>
-                        <DeleteScriptButton id={script.id} />
-                    </div>
-                    <div className="sm:hidden flex items-center gap-1 bg-slate-50/80 px-1 py-1 rounded-md shadow-sm border border-slate-100 w-fit">
-                        <CopyBtn text={name} />
-                        <div className="w-px h-4 bg-slate-200"></div>
-                        <DeleteScriptButton id={script.id} />
-                    </div>
+                    {user && (
+                        <>
+                            <div className="absolute -left-4 top-0 hidden sm:flex items-center gap-1 bg-slate-50/80 px-1 py-1 rounded-md shadow-sm border border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <CopyBtn text={name} />
+                                <div className="w-px h-4 bg-slate-200"></div>
+                                <DeleteScriptButton id={script.id} />
+                            </div>
+                            <div className="sm:hidden flex items-center gap-1 bg-slate-50/80 px-1 py-1 rounded-md shadow-sm border border-slate-100 w-fit">
+                                <CopyBtn text={name} />
+                                <div className="w-px h-4 bg-slate-200"></div>
+                                <DeleteScriptButton id={script.id} />
+                            </div>
+                        </>
+                    )}
                 </div>
             </td>
             <td className="px-6 py-4 relative group align-top">
@@ -149,8 +156,9 @@ export function EditableScriptRow({ script }: { script: any }) {
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         onBlur={(e) => handleContentBlur(e.target.value)}
+                        readOnly={!user}
                         rows={6}
-                        className="bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white rounded outline-none text-slate-700 w-full transition-all focus:ring-2 focus:ring-blue-100 px-2 py-1 resize-y"
+                        className={`w-full transition-all px-2 py-1 resize-y rounded outline-none text-slate-700 ${user ? 'bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100' : 'bg-transparent border-transparent'}`}
                     />
                     <div className="sticky top-2">
                         <CopyBtn text={content} />

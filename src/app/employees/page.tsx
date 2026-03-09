@@ -1,10 +1,12 @@
 import Image from 'next/image';
 import { prisma } from "@/lib/prisma";
 import { EmployeeForm, DeleteEmployeeButton } from "./ClientComponents";
+import { getUser } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
 export default async function EmployeesPage() {
+    const user = await getUser();
     const employees = await prisma.employee.findMany({
         orderBy: {
             createdAt: 'asc'
@@ -22,12 +24,12 @@ export default async function EmployeesPage() {
                 </div>
             </div>
 
-            <EmployeeForm />
+            {user && <EmployeeForm />}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-10">
                 {employees.map((emp: any) => (
                     <div key={emp.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow group relative">
-                        <DeleteEmployeeButton id={emp.id} />
+                        {user && <DeleteEmployeeButton id={emp.id} />}
                         <div className="relative w-full h-80 bg-slate-100 flex items-center justify-center">
                             {emp.photoBase64 ? (
                                 <Image

@@ -98,7 +98,7 @@ function DeleteAnnouncementButton({ id }: { id: string }) {
     );
 }
 
-export function AnnouncementsClient({ initialData }: { initialData: Announcement[] }) {
+export function AnnouncementsClient({ initialData, user }: { initialData: Announcement[], user: any }) {
     const [search, setSearch] = useState("");
 
     const filtered = initialData.filter(item => {
@@ -109,7 +109,7 @@ export function AnnouncementsClient({ initialData }: { initialData: Announcement
     return (
         <div className="flex flex-col flex-1 relative bg-slate-50">
             {/* Form */}
-            <AnnouncementForm />
+            {user && <AnnouncementForm />}
 
             {/* Sticky Search Bar */}
             <div className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-sm pb-6 pt-2 border-b border-slate-200">
@@ -129,7 +129,7 @@ export function AnnouncementsClient({ initialData }: { initialData: Announcement
             <div className="py-8 max-w-4xl mx-auto w-full flex flex-col gap-8 px-4 sm:px-0">
                 {filtered.map(item => (
                     <div key={item.id} className="relative bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col group hover:shadow-md transition-shadow">
-                        <DeleteAnnouncementButton id={item.id} />
+                        {user && <DeleteAnnouncementButton id={item.id} />}
 
                         <div className="flex justify-between items-start mb-6">
                             <h2 className="text-xl md:text-2xl font-bold text-slate-900 leading-tight pr-12">

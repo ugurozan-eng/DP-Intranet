@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { AnnouncementsClient } from "./AnnouncementsClient";
+import { getUser } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,8 @@ export default async function DashboardPage() {
     }
   });
 
+  const user = await getUser();
+
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto flex flex-col min-h-screen">
       <div className="mb-6 flex-shrink-0">
@@ -19,9 +22,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* This client component holds the search input and the actual list of posts */}
-      <AnnouncementsClient initialData={announcements} />
-
+      <AnnouncementsClient initialData={announcements} user={user} />
     </div>
   );
 }

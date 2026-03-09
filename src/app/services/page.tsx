@@ -2,10 +2,12 @@ import { prisma } from "@/lib/prisma";
 import { ServiceForm } from "./ServiceForm";
 import { EditableServiceRow } from "./EditableServiceRow";
 import { Download } from "lucide-react";
+import { getUser } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
 export default async function ServicesPage() {
+    const user = await getUser();
     const services = await prisma.service.findMany({
         orderBy: [
             { category: 'asc' },
@@ -46,7 +48,7 @@ export default async function ServicesPage() {
                 </a>
             </div>
 
-            <ServiceForm />
+            {user && <ServiceForm />}
 
             <div className="grid gap-8">
                 {categories.length === 0 && (
@@ -72,7 +74,7 @@ export default async function ServicesPage() {
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {services.filter(s => s.category === category).map(service => (
-                                    <EditableServiceRow key={service.id} service={service} />
+                                    <EditableServiceRow key={service.id} service={service} user={user} />
                                 ))}
                             </tbody>
                         </table>

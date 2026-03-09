@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { QuickRepliesView } from "./ClientComponents";
+import { getUser } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
 export default async function ScriptsPage() {
     const quickReplies = await prisma.quickReply.findMany({ orderBy: { title: 'asc' } });
+    const user = await getUser();
 
     return (
         <div className="p-4 md:p-8 max-w-7xl mx-auto">
@@ -14,7 +16,7 @@ export default async function ScriptsPage() {
             </div>
 
             <div className="relative">
-                <QuickRepliesView quickReplies={quickReplies} />
+                <QuickRepliesView quickReplies={quickReplies} user={user} />
             </div>
         </div>
     );

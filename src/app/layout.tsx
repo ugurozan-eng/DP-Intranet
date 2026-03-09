@@ -18,17 +18,21 @@ export const metadata: Metadata = {
   description: "Internal CRM & Dashboard",
 };
 
-export default function RootLayout({
+import { getUser } from "@/lib/auth";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getUser();
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen overflow-hidden flex flex-col md:flex-row bg-slate-50 relative`}
       >
-        <Sidebar />
+        <Sidebar user={user} />
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

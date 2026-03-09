@@ -12,8 +12,12 @@ import {
     Megaphone,
     MessageSquare,
     Menu,
-    X
+    LogOut,
+    LogIn,
+    X,
+    User as UserIcon
 } from "lucide-react";
+import { logout } from "@/app/login/actions";
 
 const navigation = [
     { name: 'Duyurular / Kampanyalar', href: '/', icon: Megaphone },
@@ -22,14 +26,20 @@ const navigation = [
     { name: 'Hızlı Yanıtlar', href: '/scripts', icon: FileText },
     { name: 'Formlar', href: '/forms', icon: ClipboardList },
     { name: 'Çalışanlarımız', href: '/employees', icon: Users },
-    { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ user }: { user: { email: string, role: string } | null }) {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
 
+    if (pathname.startsWith('/login')) return null;
+
     const closeSidebar = () => setIsOpen(false);
+
+    const navItems = [...navigation];
+    if (user?.role === 'ADMIN') {
+        navItems.push({ name: 'Settings', href: '/settings', icon: Settings });
+    }
 
     return (
         <>
@@ -62,11 +72,9 @@ export function Sidebar() {
                     <h1 className="font-bold text-white text-xl">Intranet Admin</h1>
                 </div>
 
-                {/* Mobile close button inside drawer (optional) - omitted for clean design */}
-
                 <div className="flex flex-1 flex-col overflow-y-auto mt-4 md:mt-0">
                     <nav className="flex-1 space-y-1 px-3 py-4">
-                        {navigation.map((item) => {
+                        {navItems.map((item) => {
                             const isActive = pathname === item.href;
                             return (
                                 <Link
@@ -74,8 +82,8 @@ export function Sidebar() {
                                     href={item.href}
                                     onClick={closeSidebar}
                                     className={`group flex items-center px-3 py-3 md:py-2 text-sm font-medium rounded-md transition-colors ${isActive
-                                            ? "bg-slate-800 text-white"
-                                            : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
+                                        ? "bg-slate-800 text-white"
+                                        : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
                                         }`}
                                 >
                                     <item.icon
@@ -89,6 +97,36 @@ export function Sidebar() {
                         })}
                     </nav>
                 </div>
+
+                <div className="shrink-0 p-4 border-t border-slate-800">
+                    {user ? (
+                        <div className="flex flex-col space-y-3">
+                            <div className="flex items-center gap-3 px-2">
+                                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-300">
+                                    <UserIcon size={16} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium text-white truncate w-32">{user.email}</span>
+                                    <span className="text-xs text-slate-500 font-semibold">{user.role}</span>
+                                </div>
+                            </div>
+                            <form action={logout}>
+                                <button className="flex w-full items-center gap-2 px-3 py-2 text-sm font-medium text-slate-400 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
+                                    <LogOut size={16} />
+                                    Çıkış Yap
+                                </button>
+                            </form>
+                        </div>
+                    ) : (
+                        <Link href="/login" onClick={closeSidebar}>
+                            <div className="flex w-full items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors">
+                                <LogIn size={16} />
+                                Giriş Yap
+                            </div>
+                        </Link>
+                    )}
+                </div>
+
             </div>
         </>
     );

@@ -11,7 +11,8 @@ type Props = {
         name: string;
         listPrice: number | null;
         campaignPrice: number | null;
-    }
+    },
+    user: any
 };
 
 function CopyBtn({ text }: { text: string }) {
@@ -32,13 +33,14 @@ function CopyBtn({ text }: { text: string }) {
     );
 }
 
-export function EditableServiceRow({ service }: Props) {
+export function EditableServiceRow({ service, user }: Props) {
     const [name, setName] = useState(service.name);
     const [listPrice, setListPrice] = useState(service.listPrice?.toString() || "");
     const [campaignPrice, setCampaignPrice] = useState(service.campaignPrice?.toString() || "");
     const [isPending, startTransition] = useTransition();
 
     const handlePriceBlur = (type: 'listPrice' | 'campaignPrice', val: string) => {
+        if (!user) return;
         const num = parseFloat(val);
         if (isNaN(num) && val !== "") return;
         const finalNum = isNaN(num) ? 0 : num;
@@ -53,6 +55,7 @@ export function EditableServiceRow({ service }: Props) {
     };
 
     const handleNameBlur = (val: string) => {
+        if (!user) return;
         const trimmed = val.trim();
         if (!trimmed || trimmed === service.name) {
             setName(service.name);
@@ -74,14 +77,19 @@ export function EditableServiceRow({ service }: Props) {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             onBlur={(e) => handleNameBlur(e.target.value)}
-                            className="bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white rounded outline-none text-slate-900 font-medium px-2 py-1 w-full transition-all focus:ring-2 focus:ring-blue-100"
+                            readOnly={!user}
+                            className={`px-2 py-1 w-full transition-all rounded outline-none text-slate-900 font-medium ${user ? 'bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100' : 'bg-transparent border-transparent'}`}
                         />
                         {isPending && <Loader2 size={14} className="animate-spin text-slate-400 shrink-0" />}
                     </div>
                     <div className="flex items-center gap-1 shrink-0 bg-slate-50/80 px-1 py-1 rounded-md shadow-sm border border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CopyBtn text={name} />
-                        <div className="w-px h-4 bg-slate-200"></div>
-                        <DeleteServiceButton id={service.id} />
+                        {user && (
+                            <>
+                                <div className="w-px h-4 bg-slate-200"></div>
+                                <DeleteServiceButton id={service.id} />
+                            </>
+                        )}
                     </div>
                 </div>
             </td>
@@ -95,7 +103,8 @@ export function EditableServiceRow({ service }: Props) {
                             value={listPrice}
                             onChange={(e) => setListPrice(e.target.value)}
                             onBlur={(e) => handlePriceBlur('listPrice', e.target.value)}
-                            className="pl-6 pr-2 py-1 w-full bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white rounded outline-none text-slate-500 line-through decoration-slate-300 transition-all font-medium focus:ring-2 focus:ring-blue-100"
+                            readOnly={!user}
+                            className={`pl-6 pr-2 py-1 w-full rounded outline-none text-slate-500 line-through decoration-slate-300 transition-all font-medium ${user ? 'bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100' : 'bg-transparent border-transparent'}`}
                         />
                     </div>
                     <CopyBtn text={listPrice ? `₺${listPrice}` : "0"} />
@@ -111,7 +120,8 @@ export function EditableServiceRow({ service }: Props) {
                             value={campaignPrice}
                             onChange={(e) => setCampaignPrice(e.target.value)}
                             onBlur={(e) => handlePriceBlur('campaignPrice', e.target.value)}
-                            className="pl-6 pr-2 py-1 w-full bg-emerald-100 border border-transparent hover:bg-emerald-200 focus:bg-white focus:border-emerald-500 rounded outline-none text-emerald-800 font-bold transition-all z-0 focus:ring-2 focus:ring-emerald-100"
+                            readOnly={!user}
+                            className={`pl-6 pr-2 py-1 w-full rounded outline-none text-emerald-800 font-bold transition-all z-0 ${user ? 'bg-emerald-100 border border-transparent hover:bg-emerald-200 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100' : 'bg-emerald-50 border-transparent'}`}
                         />
                     </div>
                     <CopyBtn text={campaignPrice ? `₺${campaignPrice}` : "0"} />
