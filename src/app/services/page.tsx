@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ServiceForm } from "./ServiceForm";
 import { EditableServiceRow } from "./EditableServiceRow";
+import { Download } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +36,14 @@ export default async function ServicesPage() {
                         Güncel liste ve kampanya fiyatlarını yönetin.
                     </p>
                 </div>
+                <a
+                    href="/api/export-services"
+                    download="islemler_fiyatlar.xlsx"
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
+                >
+                    <Download size={18} />
+                    Excel İndir
+                </a>
             </div>
 
             <ServiceForm />
