@@ -1,16 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
-    LayoutDashboard,
-    MessageSquare,
     Settings,
-    HelpCircle,
     FileText,
-    AlertTriangle,
     Briefcase,
-    ShieldAlert,
     Users,
     ClipboardList,
-    Megaphone
+    Megaphone,
+    MessageSquare,
+    Menu,
+    X
 } from "lucide-react";
 
 const navigation = [
@@ -24,28 +26,70 @@ const navigation = [
 ];
 
 export function Sidebar() {
+    const [isOpen, setIsOpen] = useState(false);
+    const pathname = usePathname();
+
+    const closeSidebar = () => setIsOpen(false);
+
     return (
-        <div className="flex h-full w-64 flex-col bg-slate-900">
-            <div className="flex h-16 shrink-0 items-center px-6">
+        <>
+            {/* Mobile Top Header */}
+            <div className="md:hidden flex h-16 items-center justify-between bg-slate-900 px-4 shrink-0 shadow-md relative z-30">
                 <h1 className="font-bold text-white text-xl">Intranet Admin</h1>
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="p-1 text-slate-300 hover:text-white transition-colors focus:outline-none"
+                >
+                    {isOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
             </div>
-            <div className="flex flex-1 flex-col overflow-y-auto">
-                <nav className="flex-1 space-y-1 px-3 py-4">
-                    {navigation.map((item) => (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className="group flex items-center px-3 py-2 text-sm font-medium rounded-md text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
-                        >
-                            <item.icon
-                                className="mr-3 h-5 w-5 flex-shrink-0 text-slate-400 group-hover:text-white"
-                                aria-hidden="true"
-                            />
-                            {item.name}
-                        </Link>
-                    ))}
-                </nav>
+
+            {/* Backdrop for Mobile */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
+                    onClick={closeSidebar}
+                />
+            )}
+
+            {/* Sidebar Drawer */}
+            <div className={`
+                fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-slate-900 transition-transform duration-300 ease-in-out shadow-2xl
+                md:relative md:translate-x-0 md:shadow-none
+                ${isOpen ? "translate-x-0" : "-translate-x-full"}
+            `}>
+                <div className="hidden auto md:flex h-16 shrink-0 items-center px-6 border-b border-slate-800">
+                    <h1 className="font-bold text-white text-xl">Intranet Admin</h1>
+                </div>
+
+                {/* Mobile close button inside drawer (optional) - omitted for clean design */}
+
+                <div className="flex flex-1 flex-col overflow-y-auto mt-4 md:mt-0">
+                    <nav className="flex-1 space-y-1 px-3 py-4">
+                        {navigation.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    onClick={closeSidebar}
+                                    className={`group flex items-center px-3 py-3 md:py-2 text-sm font-medium rounded-md transition-colors ${isActive
+                                            ? "bg-slate-800 text-white"
+                                            : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
+                                        }`}
+                                >
+                                    <item.icon
+                                        className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"
+                                            }`}
+                                        aria-hidden="true"
+                                    />
+                                    {item.name}
+                                </Link>
+                            );
+                        })}
+                    </nav>
+                </div>
             </div>
-        </div>
+        </>
     );
 }

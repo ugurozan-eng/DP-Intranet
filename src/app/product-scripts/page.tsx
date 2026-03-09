@@ -11,8 +11,8 @@ export default async function ProductScriptsPage() {
     });
 
     return (
-        <div className="p-8 max-w-7xl mx-auto flex flex-col min-h-screen">
-            <div className="flex justify-between items-end mb-8">
+        <div className="p-4 md:p-8 max-w-7xl mx-auto flex flex-col min-h-screen">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">Bilgi / Satış Scriptleri</h1>
                     <p className="text-slate-500 mt-2">

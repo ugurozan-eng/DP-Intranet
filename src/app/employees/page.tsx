@@ -12,7 +12,7 @@ export default async function EmployeesPage() {
     });
 
     return (
-        <div className="p-8 max-w-7xl mx-auto flex flex-col min-h-screen">
+        <div className="p-4 sm:p-8 max-w-7xl mx-auto flex flex-col min-h-screen">
             <div className="flex justify-between items-end mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">Çalışanlarımız</h1>
@@ -25,7 +25,7 @@ export default async function EmployeesPage() {
             <EmployeeForm />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-10">
-                {employees.map((emp) => (
+                {employees.map((emp: any) => (
                     <div key={emp.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow group relative">
                         <DeleteEmployeeButton id={emp.id} />
                         <div className="relative w-full h-80 bg-slate-100 flex items-center justify-center">
