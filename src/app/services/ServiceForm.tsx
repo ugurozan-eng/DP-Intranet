@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { addService } from "./actions";
 
-export function ServiceForm() {
+export function ServiceForm({ user }: { user: any }) {
     const [isOpen, setIsOpen] = useState(false);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -22,7 +22,13 @@ export function ServiceForm() {
     if (!isOpen) {
         return (
             <button
-                onClick={() => setIsOpen(true)}
+                onClick={() => {
+                    if (!user) {
+                        alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
+                        return;
+                    }
+                    setIsOpen(true);
+                }}
                 className="px-4 py-2 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors"
             >
                 + Sayfaya İşlem Ekle

@@ -25,7 +25,7 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
                         className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
-                {user && <QuickReplyForm />}
+                <QuickReplyForm user={user} />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -35,10 +35,15 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
                             {reply.title}
                             <div className="absolute top-1/2 -translate-y-1/2 right-2 flex opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-sm border border-slate-200 rounded-md">
                                 <CopyBtn text={reply.content} />
-                                {user && (
+                                {user ? (
                                     <>
                                         <div className="w-px bg-slate-200"></div>
-                                        <DelBtn id={reply.id} />
+                                        <DelBtn id={reply.id} user={user} />
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="w-px bg-slate-200"></div>
+                                        <DelBtn id={reply.id} user={user} />
                                     </>
                                 )}
                             </div>
@@ -59,7 +64,7 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
     );
 }
 
-function QuickReplyForm() {
+function QuickReplyForm({ user }: { user: any }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
@@ -78,7 +83,16 @@ function QuickReplyForm() {
 
     if (!isOpen) {
         return (
-            <button onClick={() => setIsOpen(true)} className="px-4 py-2 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors whitespace-nowrap">
+            <button
+                onClick={() => {
+                    if (!user) {
+                        alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
+                        return;
+                    }
+                    setIsOpen(true);
+                }}
+                className="px-4 py-2 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors whitespace-nowrap"
+            >
                 + Yeni Yanıt Ekle
             </button>
         );
@@ -125,11 +139,17 @@ export function CopyBtn({ text }: { text: string }) {
     );
 }
 
-export function DelBtn({ id }: { id: string }) {
+export function DelBtn({ id, user }: { id: string, user?: any }) {
     const [isPending, startTransition] = useTransition();
     return (
         <button
-            onClick={() => startTransition(() => deleteQuickReply(id))}
+            onClick={() => {
+                if (!user) {
+                    alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
+                    return;
+                }
+                startTransition(() => deleteQuickReply(id));
+            }}
             disabled={isPending}
             className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
             title="Sil"

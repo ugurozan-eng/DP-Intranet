@@ -4,7 +4,7 @@ import { useState, useTransition, useRef } from "react";
 import { addEmployee, deleteEmployee } from "./actions";
 import { Trash2, Upload, Loader2, Image as ImageIcon } from "lucide-react";
 
-export function EmployeeForm() {
+export function EmployeeForm({ user }: { user: any }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [photoData, setPhotoData] = useState<string | null>(null);
@@ -43,7 +43,13 @@ export function EmployeeForm() {
     if (!isOpen) {
         return (
             <button
-                onClick={() => setIsOpen(true)}
+                onClick={() => {
+                    if (!user) {
+                        alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
+                        return;
+                    }
+                    setIsOpen(true);
+                }}
                 className="px-4 py-2 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors"
             >
                 + Yeni Çalışan Ekle
@@ -110,12 +116,18 @@ export function EmployeeForm() {
     );
 }
 
-export function DeleteEmployeeButton({ id }: { id: string }) {
+export function DeleteEmployeeButton({ id, user }: { id: string, user: any }) {
     const [isPending, startTransition] = useTransition();
 
     return (
         <button
-            onClick={() => startTransition(() => deleteEmployee(id))}
+            onClick={() => {
+                if (!user) {
+                    alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
+                    return;
+                }
+                startTransition(() => deleteEmployee(id));
+            }}
             disabled={isPending}
             className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm text-red-500 border border-slate-200 rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors z-10 opacity-0 group-hover:opacity-100 disabled:opacity-50 shadow-sm"
             title="Çalışanı Sil"

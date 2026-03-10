@@ -24,12 +24,16 @@ export default async function EmployeesPage() {
                 </div>
             </div>
 
-            {user && <EmployeeForm />}
+            <EmployeeForm user={user} />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-10">
                 {employees.map((emp: any) => (
                     <div key={emp.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow group relative">
-                        {user && <DeleteEmployeeButton id={emp.id} />}
+                        {user ? (
+                            <DeleteEmployeeButton id={emp.id} user={user} />
+                        ) : (
+                            <DeleteEmployeeButton id={emp.id} user={user} />
+                        )}
                         <div className="relative w-full h-80 bg-slate-100 flex items-center justify-center">
                             {emp.photoBase64 ? (
                                 <Image

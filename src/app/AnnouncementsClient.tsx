@@ -11,7 +11,7 @@ type Announcement = {
     createdAt: Date;
 };
 
-function AnnouncementForm() {
+function AnnouncementForm({ user }: { user: any }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
@@ -32,7 +32,13 @@ function AnnouncementForm() {
         return (
             <div className="flex justify-center mt-4 mb-8 relative z-20">
                 <button
-                    onClick={() => setIsOpen(true)}
+                    onClick={() => {
+                        if (!user) {
+                            alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
+                            return;
+                        }
+                        setIsOpen(true);
+                    }}
                     className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-medium rounded-full hover:bg-slate-800 transition-colors shadow-md hover:shadow-lg"
                 >
                     <Plus size={18} />
@@ -83,12 +89,18 @@ function AnnouncementForm() {
     );
 }
 
-function DeleteAnnouncementButton({ id }: { id: string }) {
+function DeleteAnnouncementButton({ id, user }: { id: string, user: any }) {
     const [isPending, startTransition] = useTransition();
 
     return (
         <button
-            onClick={() => startTransition(() => deleteAnnouncement(id))}
+            onClick={() => {
+                if (!user) {
+                    alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
+                    return;
+                }
+                startTransition(() => deleteAnnouncement(id));
+            }}
             disabled={isPending}
             className="absolute top-6 right-6 p-2 bg-white/80 backdrop-blur-sm text-red-500 border border-slate-200 rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors z-10 opacity-0 group-hover:opacity-100 disabled:opacity-50 shadow-sm"
             title="Duyuruyu Sil"
@@ -109,7 +121,7 @@ export function AnnouncementsClient({ initialData, user }: { initialData: Announ
     return (
         <div className="flex flex-col flex-1 relative bg-slate-50">
             {/* Form */}
-            {user && <AnnouncementForm />}
+            <AnnouncementForm user={user} />
 
             {/* Sticky Search Bar */}
             <div className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-sm pb-6 pt-2 border-b border-slate-200">
@@ -129,7 +141,11 @@ export function AnnouncementsClient({ initialData, user }: { initialData: Announ
             <div className="py-8 max-w-4xl mx-auto w-full flex flex-col gap-8 px-4 sm:px-0">
                 {filtered.map(item => (
                     <div key={item.id} className="relative bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col group hover:shadow-md transition-shadow">
-                        {user && <DeleteAnnouncementButton id={item.id} />}
+                        {user ? (
+                            <DeleteAnnouncementButton id={item.id} user={user} />
+                        ) : (
+                            <DeleteAnnouncementButton id={item.id} user={user} />
+                        )}
 
                         <div className="flex justify-between items-start mb-6">
                             <h2 className="text-xl md:text-2xl font-bold text-slate-900 leading-tight pr-12">

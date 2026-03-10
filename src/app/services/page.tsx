@@ -48,7 +48,7 @@ export default async function ServicesPage() {
                 </a>
             </div>
 
-            {user && <ServiceForm />}
+            <ServiceForm user={user} />
 
             <div className="grid gap-8">
                 {categories.length === 0 && (
