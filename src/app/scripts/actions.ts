@@ -26,3 +26,11 @@ export async function deleteQuickReply(id: string) {
     await prisma.quickReply.delete({ where: { id } });
     revalidatePath("/scripts");
 }
+
+export async function updateQuickReply(id: string, data: Partial<{ title: string, content: string }>) {
+    await prisma.quickReply.update({
+        where: { id },
+        data
+    });
+    revalidatePath("/scripts");
+}

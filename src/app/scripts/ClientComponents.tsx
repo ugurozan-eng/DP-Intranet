@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { addQuickReply, deleteQuickReply } from "./actions";
+import { addQuickReply, deleteQuickReply, updateQuickReply } from "./actions";
 import { Trash2, Copy, Check, Search } from "lucide-react";
 
 export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], user: any }) {
@@ -30,28 +30,7 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredReplies.map(reply => (
-                    <div key={reply.id} className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col relative group transition-all hover:shadow-md">
-                        <div className="px-4 py-3 border-b border-slate-100 bg-slate-50 rounded-t-xl font-medium text-slate-800 relative pr-20 truncate">
-                            {reply.title}
-                            <div className="absolute top-1/2 -translate-y-1/2 right-2 flex opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-sm border border-slate-200 rounded-md">
-                                <CopyBtn text={reply.content} />
-                                {user ? (
-                                    <>
-                                        <div className="w-px bg-slate-200"></div>
-                                        <DelBtn id={reply.id} user={user} />
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="w-px bg-slate-200"></div>
-                                        <DelBtn id={reply.id} user={user} />
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                        <div className="p-4 flex-1">
-                            <p className="text-sm text-slate-600 line-clamp-4" title={reply.content}>{reply.content}</p>
-                        </div>
-                    </div>
+                    <EditableReplyCard key={reply.id} reply={reply} user={user} />
                 ))}
             </div>
 
@@ -60,6 +39,70 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
                     {searchQuery ? "Aramanıza uygun yanıt bulunamadı." : "Kayıtlı hızlı yanıt bulunmuyor."}
                 </div>
             )}
+        </div>
+    );
+}
+
+export function EditableReplyCard({ reply, user }: { reply: any, user: any }) {
+    const [title, setTitle] = useState(reply.title);
+    const [content, setContent] = useState(reply.content);
+    const [isPending, startTransition] = useTransition();
+
+    const handleTitleBlur = (val: string) => {
+        if (!user) return;
+        const trimmed = val.trim();
+        if (!trimmed || trimmed === reply.title) {
+            setTitle(reply.title);
+            return;
+        }
+        startTransition(async () => {
+            await updateQuickReply(reply.id, { title: trimmed });
+        });
+    };
+
+    const handleContentBlur = (val: string) => {
+        if (!user) return;
+        const trimmed = val.trim();
+        if (!trimmed || trimmed === reply.content) {
+            setContent(reply.content);
+            return;
+        }
+        startTransition(async () => {
+            await updateQuickReply(reply.id, { content: trimmed });
+        });
+    };
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col relative group transition-all hover:shadow-md">
+            <div className="px-4 py-2 border-b border-slate-100 bg-slate-50 rounded-t-xl font-medium text-slate-800 relative flex items-center pr-20">
+                <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    onBlur={(e) => handleTitleBlur(e.target.value)}
+                    readOnly={!user}
+                    className={`bg-transparent outline-none w-full font-semibold transition-colors ${user ? 'hover:bg-white focus:bg-white focus:ring-2 focus:ring-blue-100 px-2 py-1 -ml-2 rounded' : 'cursor-default'}`}
+                />
+                <div className="absolute top-1/2 -translate-y-1/2 right-2 flex opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-sm border border-slate-200 rounded-md shrink-0">
+                    <CopyBtn text={content} />
+                    {user && (
+                        <>
+                            <div className="w-px bg-slate-200"></div>
+                            <DelBtn id={reply.id} user={user} />
+                        </>
+                    )}
+                </div>
+            </div>
+            <div className="p-4 flex-1 flex flex-col">
+                <textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    onBlur={(e) => handleContentBlur(e.target.value)}
+                    readOnly={!user}
+                    rows={4}
+                    className={`w-full text-sm text-slate-600 outline-none resize-y ${user ? 'hover:bg-slate-50 focus:bg-slate-50 focus:ring-2 focus:ring-blue-100 p-2 -m-2 rounded transition-colors' : 'bg-transparent cursor-default'}`}
+                />
+            </div>
         </div>
     );
 }
