@@ -24,7 +24,8 @@ const navigation = [
     { name: 'İşlemler / Fiyatlar', href: '/services', icon: Briefcase },
     { name: 'Bilgi / Satış Scriptleri', href: '/product-scripts', icon: MessageSquare },
     { name: 'Hızlı Yanıtlar', href: '/scripts', icon: FileText },
-    { name: 'Formlar', href: '/forms', icon: ClipboardList },
+    { name: 'Masraf Formları', href: '/forms', icon: ClipboardList },
+    { name: 'İzin Formları', href: '/leaves', icon: ClipboardList },
     { name: 'Çalışanlarımız', href: '/employees', icon: Users },
 ];
 
