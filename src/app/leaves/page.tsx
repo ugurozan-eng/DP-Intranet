@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
-import { LeaveForm, ActionBtns, StatusBadge } from "./ClientComponents";
+import { LeaveDashboard, ActionBtns, StatusBadge } from "./ClientComponents";
 
 export const dynamic = 'force-dynamic';
 
@@ -51,7 +51,7 @@ export default async function LeavesPage() {
                 </div>
             </div>
 
-            <LeaveForm user={user} />
+            <LeaveDashboard user={user}>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden pb-4 overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[900px]">
@@ -128,6 +128,7 @@ export default async function LeavesPage() {
                     </tbody>
                 </table>
             </div>
+            </LeaveDashboard>
         </div>
     );
 }

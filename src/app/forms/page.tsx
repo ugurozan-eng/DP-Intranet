@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
-import { ExpenseForm, ActionBtns, StatusBadge } from "./ClientComponents";
+import { ExpenseDashboard, ActionBtns, StatusBadge } from "./ClientComponents";
 
 export const dynamic = 'force-dynamic';
 
@@ -51,7 +51,7 @@ export default async function FormsPage() {
                 </div>
             </div>
 
-            <ExpenseForm user={user} />
+            <ExpenseDashboard user={user}>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden pb-4 overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[800px]">
@@ -124,6 +124,7 @@ export default async function FormsPage() {
                     </tbody>
                 </table>
             </div>
+            </ExpenseDashboard>
         </div>
     );
 }

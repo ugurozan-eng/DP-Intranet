@@ -13,8 +13,7 @@ const CATEGORIES = [
     "Diğer Masraflar"
 ];
 
-export function ExpenseForm({ user }: { user: any }) {
-    const [isOpen, setIsOpen] = useState(false);
+export function ExpenseForm({ user, onSuccess }: { user: any; onSuccess?: () => void }) {
     const [isPending, startTransition] = useTransition();
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -22,39 +21,24 @@ export function ExpenseForm({ user }: { user: any }) {
         const formData = new FormData(e.currentTarget);
         
         startTransition(async () => {
+            if (!user) {
+                alert("Masraf girebilmek için sisteme giriş yapmalısınız.");
+                return;
+            }
             await createExpense({
                 category: formData.get("category") as string,
                 amount: parseFloat(formData.get("amount") as string),
                 description: formData.get("description") as string,
                 date: new Date(formData.get("date") as string)
             });
-            setIsOpen(false);
+            if (onSuccess) onSuccess();
         });
     }
 
-    if (!isOpen) {
-        return (
-            <button
-                onClick={() => {
-                    if (!user) {
-                        alert("Masraf girebilmek için sisteme giriş yapmalısınız.");
-                        return;
-                    }
-                    setIsOpen(true);
-                }}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-            >
-                <Plus size={18} />
-                Yeni Masraf Formu Doldur
-            </button>
-        );
-    }
-
     return (
-        <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-md mb-8 w-full max-w-xl">
+        <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm w-full">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-xl text-slate-800">Personel Masraf Girişi</h3>
-                <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 font-medium">✕</button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -148,4 +132,39 @@ export function StatusBadge({ status }: { status: string }) {
         default:
             return <span className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-full">{status}</span>;
     }
+}
+
+export function ExpenseDashboard({ user, children }: { user: any; children: React.ReactNode }) {
+    const [view, setView] = useState<"new" | "list">("new");
+    
+    return (
+        <div className="flex flex-col md:flex-row gap-6 w-full">
+            {/* Mini Sidebar */}
+            <div className="w-full md:w-64 shrink-0">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2 flex flex-col gap-1 sticky top-6">
+                    <button 
+                        onClick={() => setView("new")}
+                        className={`text-left px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${view === "new" ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50"}`}
+                    >
+                        Yeni Masraf Formu
+                    </button>
+                    <button 
+                        onClick={() => setView("list")}
+                        className={`text-left px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${view === "list" ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50"}`}
+                    >
+                        Masraf Formu Talepleri
+                    </button>
+                </div>
+            </div>
+            
+            {/* Content Area */}
+            <div className="flex-1 min-w-0">
+                {view === "new" ? (
+                    <ExpenseForm user={user} onSuccess={() => setView('list')} />
+                ) : (
+                    children
+                )}
+            </div>
+        </div>
+    );
 }
