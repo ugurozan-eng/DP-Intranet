@@ -4,17 +4,65 @@ import { useState, useTransition } from "react";
 import { addQuickReply, deleteQuickReply, updateQuickReply } from "./actions";
 import { Trash2, Copy, Check, Search } from "lucide-react";
 
+function determineCategory(title: string): string {
+    const t = title.toLowerCase();
+    
+    // Kampanyalar
+    if (t.includes("kmp") || t.includes("kampanya") || t.includes("anneler") || t.includes("ataşehir")) {
+        return "Kampanyalar";
+    }
+    // İşlemler ve Ürünler
+    if (t.includes("botoks") || t.includes("dolgu") || t.includes("askı") || t.includes("mezoterapi") || 
+        t.includes("eksozom") || t.includes("ml") || t.includes("face") || t.includes("fox") || 
+        t.includes("somon") || t.includes("aşı") || t.includes("lipoliz") || t.includes("örümcek") || 
+        t.includes("juvederm") || t.includes("germe") || t.includes("saten") || t.includes("vitamini") || t.includes("jawline")) {
+        return "İşlemler ve Ürünler";
+    }
+    // Randevu ve Destek
+    if (t.includes("randevu") || t.includes("muayene") || t.includes("whatsapp") || t.includes("insta") || 
+        t.includes("foto") || t.includes("görsel") || t.includes("before") || t.includes("talebi") || t.includes("kontrol")) {
+        return "Randevu ve Destek";
+    }
+    // Şikayet ve Kapsam Dışı
+    if (t.includes("şikayet") || t.includes("mağduriyet") || t.includes("ameliyat") || t.includes("emziren") || 
+        t.includes("franchaise") || t.includes("güzellik merkezi") || t.includes("aktarım")) {
+        return "Şikayet ve Kapsam Dışı";
+    }
+    // Klinik ve Ödeme
+    if (t.includes("saat") || t.includes("mesai") || t.includes("klinik") || t.includes("konum") || 
+        t.includes("yol") || t.includes("taksit") || t.includes("pazarlık") || t.includes("hekim") || 
+        t.includes("jedocain") || t.includes("herbamina") || t.includes("ebru") || t.includes("banka")) {
+        return "Klinik ve Ödeme";
+    }
+
+    return "Diğer";
+}
+
+const CATEGORIES = [
+  "Tümü",
+  "Kampanyalar",
+  "İşlemler ve Ürünler",
+  "Randevu ve Destek",
+  "Şikayet ve Kapsam Dışı",
+  "Klinik ve Ödeme",
+  "Diğer"
+];
+
 export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], user: any }) {
     const [searchQuery, setSearchQuery] = useState("");
+    const [activeCategory, setActiveCategory] = useState("Tümü");
 
     const filteredReplies = quickReplies.filter(reply => {
         const query = searchQuery.toLowerCase();
-        return reply.title.toLowerCase().includes(query) || reply.content.toLowerCase().includes(query);
+        const matchesSearch = reply.title.toLowerCase().includes(query) || reply.content.toLowerCase().includes(query);
+        
+        if (activeCategory === "Tümü") return matchesSearch;
+        return matchesSearch && determineCategory(reply.title) === activeCategory;
     });
 
     return (
         <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                 <div className="relative w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
@@ -28,6 +76,22 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
                 <QuickReplyForm user={user} />
             </div>
 
+            <div className="flex overflow-x-auto pb-4 mb-4 gap-2 scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+                {CATEGORIES.map(category => (
+                    <button
+                        key={category}
+                        onClick={() => setActiveCategory(category)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                            activeCategory === category 
+                            ? 'bg-slate-900 text-white shadow-sm' 
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                        }`}
+                    >
+                        {category}
+                    </button>
+                ))}
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredReplies.map(reply => (
                     <EditableReplyCard key={reply.id} reply={reply} user={user} />
@@ -36,7 +100,9 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
 
             {filteredReplies.length === 0 && (
                 <div className="text-center py-12 rounded-xl border border-dashed border-slate-300 text-slate-500 mt-6">
-                    {searchQuery ? "Aramanıza uygun yanıt bulunamadı." : "Kayıtlı hızlı yanıt bulunmuyor."}
+                    {searchQuery || activeCategory !== "Tümü" 
+                        ? "Aramanıza veya seçili kategoriye uygun yanıt bulunamadı." 
+                        : "Kayıtlı hızlı yanıt bulunmuyor."}
                 </div>
             )}
         </div>
