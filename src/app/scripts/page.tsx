@@ -4,7 +4,30 @@ import { getUser } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
+const DEFAULT_CATEGORIES = [
+  "Kampanyalar",
+  "İşlemler ve Ürünler",
+  "Randevu ve Destek",
+  "Şikayet ve Kapsam Dışı",
+  "Klinik ve Ödeme",
+  "Diğer"
+];
+
 export default async function ScriptsPage() {
+    let categoriesList = await prisma.quickReplyCategory.findMany({ orderBy: { order: 'asc' } });
+    if (categoriesList.length === 0) {
+        // Seed default categories
+        await prisma.quickReplyCategory.createMany({
+            data: DEFAULT_CATEGORIES.map((c, i) => ({ name: c, order: i }))
+        });
+        categoriesList = await prisma.quickReplyCategory.findMany({ orderBy: { order: 'asc' } });
+    }
+    
+    // Add "Tümü" to the beginning as a synthetic object or map to strings, wait we should map to strings because the UI expects strings right now.
+    const categories = ["Tümü", ...categoriesList.map(c => c.name)];
+    // But we need the objects for the edit modal.
+    const rawCategories = categoriesList;
+
     const quickReplies = await prisma.quickReply.findMany({ orderBy: { title: 'asc' } });
     const user = await getUser();
 
@@ -16,7 +39,7 @@ export default async function ScriptsPage() {
             </div>
 
             <div className="relative">
-                <QuickRepliesView quickReplies={quickReplies} user={user} />
+                <QuickRepliesView quickReplies={quickReplies} user={user} categories={categories} rawCategories={rawCategories} />
             </div>
         </div>
     );

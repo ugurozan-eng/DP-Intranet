@@ -1,22 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { addQuickReply, deleteQuickReply, updateQuickReply } from "./actions";
-import { Trash2, Copy, Check, Search } from "lucide-react";
+import { addQuickReply, deleteQuickReply, updateQuickReply, addCategory, updateCategory, deleteCategory } from "./actions";
+import { Trash2, Copy, Check, Search, Settings } from "lucide-react";
 
-
-
-const CATEGORIES = [
-  "Tümü",
-  "Kampanyalar",
-  "İşlemler ve Ürünler",
-  "Randevu ve Destek",
-  "Şikayet ve Kapsam Dışı",
-  "Klinik ve Ödeme",
-  "Diğer"
-];
-
-export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], user: any }) {
+export function QuickRepliesView({ quickReplies, user, categories, rawCategories }: { quickReplies: any[], user: any, categories: string[], rawCategories: any[] }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("Tümü");
 
@@ -41,11 +29,14 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
                         className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
-                <QuickReplyForm user={user} />
+                <div className="flex items-center gap-2">
+                    {user && <CategoriesManager user={user} rawCategories={rawCategories} />}
+                    <QuickReplyForm user={user} categories={categories} />
+                </div>
             </div>
 
             <div className="flex overflow-x-auto pb-4 mb-4 gap-2 scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-                {CATEGORIES.map(category => (
+                {categories.map(category => (
                     <button
                         key={category}
                         onClick={() => setActiveCategory(category)}
@@ -62,7 +53,7 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredReplies.map(reply => (
-                    <EditableReplyCard key={reply.id} reply={reply} user={user} />
+                    <EditableReplyCard key={reply.id} reply={reply} user={user} categories={categories} />
                 ))}
             </div>
 
@@ -77,7 +68,7 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
     );
 }
 
-export function EditableReplyCard({ reply, user }: { reply: any, user: any }) {
+export function EditableReplyCard({ reply, user, categories }: { reply: any, user: any, categories: string[] }) {
     const [title, setTitle] = useState(reply.title);
     const [content, setContent] = useState(reply.content);
     const [category, setCategory] = useState(reply.category || "Diğer");
@@ -144,7 +135,7 @@ export function EditableReplyCard({ reply, user }: { reply: any, user: any }) {
                         disabled={!user}
                         className={`text-xs font-medium px-2 py-1 outline-none rounded w-full border ${user ? 'border-slate-200 hover:border-blue-300 focus:ring-1 focus:ring-blue-300' : 'border-transparent bg-transparent cursor-default appearance-none'} text-slate-500 bg-white`}
                     >
-                        {CATEGORIES.filter(c => c !== "Tümü").map(cat => (
+                        {categories.filter(c => c !== "Tümü").map(cat => (
                             <option key={cat} value={cat}>{cat}</option>
                         ))}
                     </select>
@@ -162,7 +153,7 @@ export function EditableReplyCard({ reply, user }: { reply: any, user: any }) {
     );
 }
 
-function QuickReplyForm({ user }: { user: any }) {
+function QuickReplyForm({ user, categories }: { user: any, categories: string[] }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
@@ -211,7 +202,7 @@ function QuickReplyForm({ user }: { user: any }) {
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
                     <select name="category" defaultValue="Diğer" className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900 bg-white outline-none focus:ring-2 focus:ring-blue-500">
-                        {CATEGORIES.filter(c => c !== "Tümü").map(cat => (
+                        {categories.filter(c => c !== "Tümü").map(cat => (
                             <option key={cat} value={cat}>{cat}</option>
                         ))}
                     </select>
@@ -263,5 +254,94 @@ export function DelBtn({ id, user }: { id: string, user?: any }) {
         >
             <Trash2 size={18} />
         </button>
+    );
+}
+
+export function CategoriesManager({ user, rawCategories }: { user: any, rawCategories: any[] }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+
+    if (!user) return null;
+
+    if (!isOpen) {
+        return (
+            <button
+                onClick={() => setIsOpen(true)}
+                className="px-3 py-2 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-2"
+                title="Grupları Yönet"
+            >
+                <Settings size={18} />
+            </button>
+        );
+    }
+
+    return (
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xl w-full max-w-md absolute z-20 top-0 right-0">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg text-slate-800">Grupları Yönet</h3>
+                <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            
+            <div className="space-y-3 max-h-60 overflow-y-auto mb-4 pr-2">
+                {rawCategories.map(cat => (
+                    <CategoryEditRow key={cat.id} category={cat} isPending={isPending} startTransition={startTransition} />
+                ))}
+                {rawCategories.length === 0 && (
+                    <p className="text-sm text-slate-500 italic text-center py-2">Kayıtlı grup bulunmuyor.</p>
+                )}
+            </div>
+
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    const fd = new FormData(e.currentTarget);
+                    const name = fd.get("name") as string;
+                    if (name.trim()) {
+                        startTransition(async () => {
+                            await addCategory(name.trim());
+                            (e.target as HTMLFormElement).reset();
+                        });
+                    }
+                }}
+                className="flex gap-2 pt-3 border-t border-slate-100"
+            >
+                <input required type="text" name="name" placeholder="Yeni Grup Ekle..." className="flex-1 border-slate-300 border rounded-lg px-3 py-2 text-sm text-slate-900" />
+                <button type="submit" disabled={isPending} className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 disabled:opacity-50">Ekle</button>
+            </form>
+        </div>
+    );
+}
+
+function CategoryEditRow({ category, isPending, startTransition }: { category: any, isPending: boolean, startTransition: React.TransitionStartFunction }) {
+    const [name, setName] = useState(category.name);
+
+    return (
+        <div className="flex items-center gap-2 group">
+            <input 
+                type="text" 
+                value={name} 
+                onChange={e => setName(e.target.value)}
+                onBlur={() => {
+                    if (name.trim() && name !== category.name) {
+                        startTransition(async () => await updateCategory(category.id, name.trim()));
+                    } else {
+                        setName(category.name);
+                    }
+                }}
+                className="flex-1 border border-transparent hover:border-slate-200 focus:border-blue-300 focus:ring-1 focus:ring-blue-300 rounded px-2 py-1 outline-none text-sm font-medium transition-colors"
+                disabled={isPending}
+            />
+            <button 
+                onClick={() => {
+                    if(confirm(`"${category.name}" grubunu silmek istediğinize emin misiniz? Bu gruptaki yanıtlar "Diğer" grubuna taşınacaktır.`)) {
+                        startTransition(async () => await deleteCategory(category.id));
+                    }
+                }}
+                disabled={isPending} 
+                className="p-1.5 text-red-400 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 rounded transition-all disabled:opacity-50"
+            >
+                <Trash2 size={16} />
+            </button>
+        </div>
     );
 }
