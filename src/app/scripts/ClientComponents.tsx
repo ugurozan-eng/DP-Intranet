@@ -130,11 +130,12 @@ export function EditableReplyCard({ reply, user, categories }: { reply: any, use
             <div className="p-4 flex-1 flex flex-col">
                 <div className="mb-2 flex items-center justify-between">
                     <select
-                        value={category}
+                        value={categories.includes(category) ? category : ""}
                         onChange={(e) => handleCategoryChange(e.target.value)}
                         disabled={!user}
                         className={`text-xs font-medium px-2 py-1 outline-none rounded w-full border ${user ? 'border-slate-200 hover:border-blue-300 focus:ring-1 focus:ring-blue-300' : 'border-transparent bg-transparent cursor-default appearance-none'} text-slate-500 bg-white`}
                     >
+                        <option value="" disabled>Grup Seçiniz</option>
                         {categories.filter(c => c !== "Tümü").map(cat => (
                             <option key={cat} value={cat}>{cat}</option>
                         ))}
@@ -165,7 +166,7 @@ function QuickReplyForm({ user, categories }: { user: any, categories: string[] 
             await addQuickReply({
                 title: formData.get("title") as string,
                 content: formData.get("content") as string,
-                category: formData.get("category") as string || "Diğer",
+                category: formData.get("category") as string,
             });
             setIsOpen(false);
         });
@@ -201,7 +202,8 @@ function QuickReplyForm({ user, categories }: { user: any, categories: string[] 
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
-                    <select name="category" defaultValue="Diğer" className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900 bg-white outline-none focus:ring-2 focus:ring-blue-500">
+                    <select required name="category" defaultValue="" className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900 bg-white outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="" disabled>Grup Seçiniz</option>
                         {categories.filter(c => c !== "Tümü").map(cat => (
                             <option key={cat} value={cat}>{cat}</option>
                         ))}
