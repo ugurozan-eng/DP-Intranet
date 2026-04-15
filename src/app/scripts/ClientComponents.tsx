@@ -4,39 +4,7 @@ import { useState, useTransition } from "react";
 import { addQuickReply, deleteQuickReply, updateQuickReply } from "./actions";
 import { Trash2, Copy, Check, Search } from "lucide-react";
 
-function determineCategory(title: string): string {
-    const t = title.toLowerCase();
-    
-    // Kampanyalar
-    if (t.includes("kmp") || t.includes("kampanya") || t.includes("anneler") || t.includes("ataşehir")) {
-        return "Kampanyalar";
-    }
-    // İşlemler ve Ürünler
-    if (t.includes("botoks") || t.includes("dolgu") || t.includes("askı") || t.includes("mezoterapi") || 
-        t.includes("eksozom") || t.includes("ml") || t.includes("face") || t.includes("fox") || 
-        t.includes("somon") || t.includes("aşı") || t.includes("lipoliz") || t.includes("örümcek") || 
-        t.includes("juvederm") || t.includes("germe") || t.includes("saten") || t.includes("vitamini") || t.includes("jawline")) {
-        return "İşlemler ve Ürünler";
-    }
-    // Randevu ve Destek
-    if (t.includes("randevu") || t.includes("muayene") || t.includes("whatsapp") || t.includes("insta") || 
-        t.includes("foto") || t.includes("görsel") || t.includes("before") || t.includes("talebi") || t.includes("kontrol")) {
-        return "Randevu ve Destek";
-    }
-    // Şikayet ve Kapsam Dışı
-    if (t.includes("şikayet") || t.includes("mağduriyet") || t.includes("ameliyat") || t.includes("emziren") || 
-        t.includes("franchaise") || t.includes("güzellik merkezi") || t.includes("aktarım")) {
-        return "Şikayet ve Kapsam Dışı";
-    }
-    // Klinik ve Ödeme
-    if (t.includes("saat") || t.includes("mesai") || t.includes("klinik") || t.includes("konum") || 
-        t.includes("yol") || t.includes("taksit") || t.includes("pazarlık") || t.includes("hekim") || 
-        t.includes("jedocain") || t.includes("herbamina") || t.includes("ebru") || t.includes("banka")) {
-        return "Klinik ve Ödeme";
-    }
 
-    return "Diğer";
-}
 
 const CATEGORIES = [
   "Tümü",
@@ -57,7 +25,7 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
         const matchesSearch = reply.title.toLowerCase().includes(query) || reply.content.toLowerCase().includes(query);
         
         if (activeCategory === "Tümü") return matchesSearch;
-        return matchesSearch && determineCategory(reply.title) === activeCategory;
+        return matchesSearch && (reply.category || "Diğer") === activeCategory;
     });
 
     return (
@@ -112,7 +80,16 @@ export function QuickRepliesView({ quickReplies, user }: { quickReplies: any[], 
 export function EditableReplyCard({ reply, user }: { reply: any, user: any }) {
     const [title, setTitle] = useState(reply.title);
     const [content, setContent] = useState(reply.content);
+    const [category, setCategory] = useState(reply.category || "Diğer");
     const [isPending, startTransition] = useTransition();
+
+    const handleCategoryChange = (val: string) => {
+        if (!user) return;
+        setCategory(val);
+        startTransition(async () => {
+            await updateQuickReply(reply.id, { category: val });
+        });
+    };
 
     const handleTitleBlur = (val: string) => {
         if (!user) return;
@@ -160,13 +137,25 @@ export function EditableReplyCard({ reply, user }: { reply: any, user: any }) {
                 </div>
             </div>
             <div className="p-4 flex-1 flex flex-col">
+                <div className="mb-2 flex items-center justify-between">
+                    <select
+                        value={category}
+                        onChange={(e) => handleCategoryChange(e.target.value)}
+                        disabled={!user}
+                        className={`text-xs font-medium px-2 py-1 outline-none rounded w-full border ${user ? 'border-slate-200 hover:border-blue-300 focus:ring-1 focus:ring-blue-300' : 'border-transparent bg-transparent cursor-default appearance-none'} text-slate-500 bg-white`}
+                    >
+                        {CATEGORIES.filter(c => c !== "Tümü").map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                    </select>
+                </div>
                 <textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     onBlur={(e) => handleContentBlur(e.target.value)}
                     readOnly={!user}
                     rows={4}
-                    className={`w-full text-sm text-slate-600 outline-none resize-y ${user ? 'hover:bg-slate-50 focus:bg-slate-50 focus:ring-2 focus:ring-blue-100 p-2 -m-2 rounded transition-colors' : 'bg-transparent cursor-default'}`}
+                    className={`w-full text-sm text-slate-600 outline-none resize-y ${user ? 'hover:bg-slate-50 focus:bg-slate-50 focus:ring-2 focus:ring-blue-100 p-2 -m-2 rounded transition-colors mt-2' : 'bg-transparent cursor-default mt-2'}`}
                 />
             </div>
         </div>
@@ -185,6 +174,7 @@ function QuickReplyForm({ user }: { user: any }) {
             await addQuickReply({
                 title: formData.get("title") as string,
                 content: formData.get("content") as string,
+                category: formData.get("category") as string || "Diğer",
             });
             setIsOpen(false);
         });
@@ -217,6 +207,14 @@ function QuickReplyForm({ user }: { user: any }) {
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Kısayol/Başlık</label>
                     <input required name="title" type="text" placeholder="Örn: Konum" className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900" />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
+                    <select name="category" defaultValue="Diğer" className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900 bg-white outline-none focus:ring-2 focus:ring-blue-500">
+                        {CATEGORIES.filter(c => c !== "Tümü").map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                    </select>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Yanıt İçeriği</label>

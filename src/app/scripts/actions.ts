@@ -15,7 +15,7 @@ export async function deleteScript(id: string) {
     revalidatePath("/scripts");
 }
 
-export async function addQuickReply(data: { title: string, content: string }) {
+export async function addQuickReply(data: { title: string, content: string, category: string }) {
     await prisma.quickReply.create({
         data
     });
@@ -27,7 +27,7 @@ export async function deleteQuickReply(id: string) {
     revalidatePath("/scripts");
 }
 
-export async function updateQuickReply(id: string, data: Partial<{ title: string, content: string }>) {
+export async function updateQuickReply(id: string, data: Partial<{ title: string, content: string, category: string }>) {
     await prisma.quickReply.update({
         where: { id },
         data
