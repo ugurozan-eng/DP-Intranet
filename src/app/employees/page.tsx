@@ -40,7 +40,7 @@ export default async function EmployeesPage() {
                                     src={emp.photoBase64}
                                     alt={emp.name}
                                     fill
-                                    className="object-cover object-top"
+                                    className="object-cover object-center"
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 />
                             ) : (
