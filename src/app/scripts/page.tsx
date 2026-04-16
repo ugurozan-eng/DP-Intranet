@@ -23,8 +23,8 @@ export default async function ScriptsPage() {
         categoriesList = await prisma.quickReplyCategory.findMany({ orderBy: { order: 'asc' } });
     }
     
-    // Add "Tümü" to the beginning as a synthetic object or map to strings, wait we should map to strings because the UI expects strings right now.
-    const categories = ["Tümü", ...categoriesList.map(c => c.name)];
+    // Add "Tümü" to the end as a synthetic option.
+    const categories = [...categoriesList.map(c => c.name), "Tümü"];
     // But we need the objects for the edit modal.
     const rawCategories = categoriesList;
 

@@ -1,12 +1,18 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { addQuickReply, deleteQuickReply, updateQuickReply, addCategory, updateCategory, deleteCategory } from "./actions";
-import { Trash2, Copy, Check, Search, Settings } from "lucide-react";
+import { useState, useTransition, useEffect, useRef } from "react";
+import { addQuickReply, deleteQuickReply, updateQuickReply, addCategory, updateCategory, deleteCategory, updateCategoryOrders } from "./actions";
+import { Trash2, Copy, Check, Search, Settings, ChevronUp, ChevronDown } from "lucide-react";
 
 export function QuickRepliesView({ quickReplies, user, categories, rawCategories }: { quickReplies: any[], user: any, categories: string[], rawCategories: any[] }) {
     const [searchQuery, setSearchQuery] = useState("");
-    const [activeCategory, setActiveCategory] = useState("Tümü");
+    const [activeCategory, setActiveCategory] = useState(() => {
+        const item = categories.find(c => c.toLowerCase() === "işlemler");
+        if (item) return item;
+        const item2 = categories.find(c => c.toLowerCase().includes("işlem"));
+        if (item2) return item2;
+        return categories.length > 0 ? categories[0] : "Tümü";
+    });
 
     const filteredReplies = quickReplies.filter(reply => {
         const query = searchQuery.toLowerCase();
@@ -73,6 +79,33 @@ export function EditableReplyCard({ reply, user, categories }: { reply: any, use
     const [content, setContent] = useState(reply.content);
     const [category, setCategory] = useState(reply.category || "Diğer");
     const [isPending, startTransition] = useTransition();
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        const savedHeight = localStorage.getItem(`textarea-height-${reply.id}`);
+        if (savedHeight && textareaRef.current) {
+            textareaRef.current.style.height = savedHeight;
+        }
+
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+                if (entry.target === textareaRef.current) {
+                    const inlineHeight = (entry.target as HTMLElement).style.height;
+                    if (inlineHeight) {
+                        localStorage.setItem(`textarea-height-${reply.id}`, inlineHeight);
+                    }
+                }
+            }
+        });
+
+        if (textareaRef.current) {
+            resizeObserver.observe(textareaRef.current);
+        }
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [reply.id]);
 
     const handleCategoryChange = (val: string) => {
         if (!user) return;
@@ -142,6 +175,7 @@ export function EditableReplyCard({ reply, user, categories }: { reply: any, use
                     </select>
                 </div>
                 <textarea
+                    ref={textareaRef}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     onBlur={(e) => handleContentBlur(e.target.value)}
@@ -263,6 +297,23 @@ export function CategoriesManager({ user, rawCategories }: { user: any, rawCateg
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
+    const handleMove = (index: number, direction: 'up' | 'down') => {
+        if (direction === 'up' && index === 0) return;
+        if (direction === 'down' && index === rawCategories.length - 1) return;
+
+        const newOrder = [...rawCategories];
+        const swapIndex = direction === 'up' ? index - 1 : index + 1;
+        const temp = newOrder[index];
+        newOrder[index] = newOrder[swapIndex];
+        newOrder[swapIndex] = temp;
+
+        const updates = newOrder.map((cat, i) => ({ id: cat.id, order: i }));
+        
+        startTransition(async () => {
+            await updateCategoryOrders(updates);
+        });
+    };
+
     if (!user) return null;
 
     if (!isOpen) {
@@ -285,8 +336,17 @@ export function CategoriesManager({ user, rawCategories }: { user: any, rawCateg
             </div>
             
             <div className="space-y-3 max-h-60 overflow-y-auto mb-4 pr-2">
-                {rawCategories.map(cat => (
-                    <CategoryEditRow key={cat.id} category={cat} isPending={isPending} startTransition={startTransition} />
+                {rawCategories.map((cat, index) => (
+                    <CategoryEditRow 
+                        key={cat.id} 
+                        category={cat} 
+                        isPending={isPending} 
+                        startTransition={startTransition} 
+                        onMoveUp={() => handleMove(index, 'up')}
+                        onMoveDown={() => handleMove(index, 'down')}
+                        canMoveUp={index > 0}
+                        canMoveDown={index < rawCategories.length - 1}
+                    />
                 ))}
                 {rawCategories.length === 0 && (
                     <p className="text-sm text-slate-500 italic text-center py-2">Kayıtlı grup bulunmuyor.</p>
@@ -314,11 +374,15 @@ export function CategoriesManager({ user, rawCategories }: { user: any, rawCateg
     );
 }
 
-function CategoryEditRow({ category, isPending, startTransition }: { category: any, isPending: boolean, startTransition: React.TransitionStartFunction }) {
+function CategoryEditRow({ category, isPending, startTransition, onMoveUp, onMoveDown, canMoveUp, canMoveDown }: { category: any, isPending: boolean, startTransition: React.TransitionStartFunction, onMoveUp: () => void, onMoveDown: () => void, canMoveUp: boolean, canMoveDown: boolean }) {
     const [name, setName] = useState(category.name);
 
     return (
         <div className="flex items-center gap-2 group">
+            <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity pr-1 w-5 items-center justify-center">
+                <button onClick={onMoveUp} disabled={!canMoveUp || isPending} className="text-slate-400 hover:text-slate-700 disabled:opacity-0 p-0.5"><ChevronUp size={16} /></button>
+                <button onClick={onMoveDown} disabled={!canMoveDown || isPending} className="text-slate-400 hover:text-slate-700 disabled:opacity-0 p-0.5"><ChevronDown size={16} /></button>
+            </div>
             <input 
                 type="text" 
                 value={name} 

@@ -62,3 +62,15 @@ export async function deleteCategory(id: string) {
     ]);
     revalidatePath("/scripts");
 }
+
+export async function updateCategoryOrders(updates: { id: string, order: number }[]) {
+    await prisma.$transaction(
+        updates.map(u => 
+            prisma.quickReplyCategory.update({
+                where: { id: u.id },
+                data: { order: u.order }
+            })
+        )
+    );
+    revalidatePath("/scripts");
+}
