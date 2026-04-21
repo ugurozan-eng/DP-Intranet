@@ -28,7 +28,7 @@ export default async function ScriptsPage() {
     // But we need the objects for the edit modal.
     const rawCategories = categoriesList;
 
-    const quickReplies = await prisma.quickReply.findMany({ orderBy: { title: 'asc' } });
+    const quickReplies = await prisma.quickReply.findMany({ orderBy: [{ order: 'asc' }, { title: 'asc' }] });
     const user = await getUser();
 
     return (

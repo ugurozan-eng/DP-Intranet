@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition, useEffect, useRef } from "react";
-import { addQuickReply, deleteQuickReply, updateQuickReply, addCategory, updateCategory, deleteCategory, updateCategoryOrders } from "./actions";
-import { Trash2, Copy, Check, Search, Settings, ChevronUp, ChevronDown } from "lucide-react";
+import { addQuickReply, deleteQuickReply, updateQuickReply, addCategory, updateCategory, deleteCategory, updateCategoryOrders, updateQuickReplyOrders } from "./actions";
+import { Trash2, Copy, Check, Search, Settings, ChevronUp, ChevronDown, GripVertical } from "lucide-react";
 
 export function QuickRepliesView({ quickReplies, user, categories, rawCategories }: { quickReplies: any[], user: any, categories: string[], rawCategories: any[] }) {
     const [searchQuery, setSearchQuery] = useState("");
@@ -14,13 +14,70 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
         return categories.length > 0 ? categories[0] : "Tümü";
     });
 
-    const filteredReplies = quickReplies.filter(reply => {
+    const [localReplies, setLocalReplies] = useState(quickReplies);
+    const [draggedItem, setDraggedItem] = useState<any>(null);
+    const [dragOverItem, setDragOverItem] = useState<any>(null);
+    const [isPending, startTransition] = useTransition();
+
+    useEffect(() => {
+        setLocalReplies(quickReplies);
+    }, [quickReplies]);
+
+    const filteredReplies = localReplies.filter(reply => {
         const query = searchQuery.toLowerCase();
         const matchesSearch = reply.title.toLowerCase().includes(query) || reply.content.toLowerCase().includes(query);
         
         if (activeCategory === "Tümü") return matchesSearch;
         return matchesSearch && (reply.category || "Diğer") === activeCategory;
     });
+
+    const handleDragStart = (e: React.DragEvent, reply: any) => {
+        if (!user) {
+            e.preventDefault();
+            return;
+        }
+        setDraggedItem(reply);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e: React.DragEvent, reply: any) => {
+        e.preventDefault();
+        if (!user || !draggedItem || draggedItem.id === reply.id) return;
+        setDragOverItem(reply);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedItem(null);
+        setDragOverItem(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, targetReply: any) => {
+        e.preventDefault();
+        if (!user || !draggedItem || draggedItem.id === targetReply.id) {
+            handleDragEnd();
+            return;
+        }
+
+        const newLocal = [...localReplies];
+        const draggedIdx = newLocal.findIndex(r => r.id === draggedItem.id);
+        const targetIdx = newLocal.findIndex(r => r.id === targetReply.id);
+
+        if (draggedIdx === -1 || targetIdx === -1) {
+            handleDragEnd();
+            return;
+        }
+
+        const [movedItem] = newLocal.splice(draggedIdx, 1);
+        newLocal.splice(targetIdx, 0, movedItem);
+
+        setLocalReplies(newLocal);
+        handleDragEnd();
+
+        const updates = newLocal.map((r, i) => ({ id: r.id, order: i }));
+        startTransition(() => {
+            updateQuickReplyOrders(updates);
+        });
+    };
 
     return (
         <div>
@@ -41,7 +98,7 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
                 </div>
             </div>
 
-            <div className="flex overflow-x-auto pb-4 mb-4 gap-2 scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+            <div className="flex flex-wrap pb-4 mb-4 gap-2">
                 {categories.map(category => (
                     <button
                         key={category}
@@ -59,7 +116,17 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredReplies.map(reply => (
-                    <EditableReplyCard key={reply.id} reply={reply} user={user} categories={categories} />
+                    <div
+                        key={reply.id}
+                        draggable={!!user}
+                        onDragStart={(e) => handleDragStart(e, reply)}
+                        onDragOver={(e) => handleDragOver(e, reply)}
+                        onDrop={(e) => handleDrop(e, reply)}
+                        onDragEnd={handleDragEnd}
+                        className={`transition-all duration-200 ${dragOverItem?.id === reply.id ? 'opacity-80 scale-[1.02] ring-2 ring-blue-400 rounded-xl' : 'opacity-100'} ${draggedItem?.id === reply.id ? 'opacity-40' : ''}`}
+                    >
+                        <EditableReplyCard reply={reply} user={user} categories={categories} />
+                    </div>
                 ))}
             </div>
 
@@ -140,15 +207,16 @@ export function EditableReplyCard({ reply, user, categories }: { reply: any, use
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col relative group transition-all hover:shadow-md">
+        <div className={`bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col relative group transition-all ${user ? 'cursor-grab active:cursor-grabbing hover:shadow-md' : 'hover:shadow-md'} h-full`}>
             <div className="px-4 py-2 border-b border-slate-100 bg-slate-50 rounded-t-xl font-medium text-slate-800 relative flex items-center pr-20">
+                {user && <GripVertical size={15} className="text-slate-300 mr-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />}
                 <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     onBlur={(e) => handleTitleBlur(e.target.value)}
                     readOnly={!user}
-                    className={`bg-transparent outline-none w-full font-semibold transition-colors ${user ? 'hover:bg-white focus:bg-white focus:ring-2 focus:ring-blue-100 px-2 py-1 -ml-2 rounded' : 'cursor-default'}`}
+                    className={`bg-transparent outline-none w-full font-semibold transition-colors ${user ? 'hover:bg-white focus:bg-white focus:ring-2 focus:ring-blue-100 px-2 py-1 -ml-2 rounded cursor-text' : 'cursor-default'}`}
                 />
                 <div className="absolute top-1/2 -translate-y-1/2 right-2 flex opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-sm border border-slate-200 rounded-md shrink-0">
                     <CopyBtn text={content} />

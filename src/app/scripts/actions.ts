@@ -74,3 +74,15 @@ export async function updateCategoryOrders(updates: { id: string, order: number 
     );
     revalidatePath("/scripts");
 }
+
+export async function updateQuickReplyOrders(updates: { id: string, order: number }[]) {
+    await prisma.$transaction(
+        updates.map(u => 
+            prisma.quickReply.update({
+                where: { id: u.id },
+                data: { order: u.order }
+            })
+        )
+    );
+    revalidatePath("/scripts");
+}
