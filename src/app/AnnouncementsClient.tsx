@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Search, Plus, Trash2, Loader2 } from "lucide-react";
-import { addAnnouncement, deleteAnnouncement } from "./actions";
+import { Search, Plus, Trash2, Loader2, Edit2 } from "lucide-react";
+import { addAnnouncement, deleteAnnouncement, updateAnnouncement } from "./actions";
 import RichTextEditor from "./components/RichTextEditor";
+
 
 
 type Announcement = {
@@ -13,10 +14,13 @@ type Announcement = {
     createdAt: Date;
 };
 
-function AnnouncementForm({ user }: { user: any }) {
+function AnnouncementForm({ user, editingItem, onClose }: { user: any, editingItem?: Announcement | null, onClose?: () => void }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
-    const [content, setContent] = useState("");
+    const [content, setContent] = useState(editingItem?.content || "");
+
+    const isEdit = !!editingItem;
+    const active = isOpen || isEdit;
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -29,17 +33,18 @@ function AnnouncementForm({ user }: { user: any }) {
         }
 
         startTransition(async () => {
-            await addAnnouncement({
-                title: title,
-                content: content,
-            });
-            setIsOpen(false);
-            setContent("");
+            if (isEdit) {
+                await updateAnnouncement(editingItem.id, { title, content });
+                if (onClose) onClose();
+            } else {
+                await addAnnouncement({ title, content });
+                setIsOpen(false);
+                setContent("");
+            }
         });
     }
 
-
-    if (!isOpen) {
+    if (!active) {
         return (
             <div className="flex justify-center mt-4 mb-8 relative z-20">
                 <button
@@ -62,8 +67,18 @@ function AnnouncementForm({ user }: { user: any }) {
     return (
         <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-md mb-10 w-full max-w-3xl mx-auto relative z-20">
             <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-xl text-slate-800">Yeni İçerik Oluştur</h3>
-                <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 font-medium">✕</button>
+                <h3 className="font-bold text-xl text-slate-800">
+                    {isEdit ? "Duyuruyu Düzenle" : "Yeni İçerik Oluştur"}
+                </h3>
+                <button 
+                    onClick={() => {
+                        if (isEdit && onClose) onClose();
+                        else setIsOpen(false);
+                    }} 
+                    className="text-slate-400 hover:text-slate-600 font-medium"
+                >
+                    ✕
+                </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -73,6 +88,7 @@ function AnnouncementForm({ user }: { user: any }) {
                         required
                         name="title"
                         type="text"
+                        defaultValue={editingItem?.title || ""}
                         placeholder="Örn: Nisan Ayı Özel Lazer Kampanyası"
                         className="w-full border-slate-300 border rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
@@ -83,17 +99,17 @@ function AnnouncementForm({ user }: { user: any }) {
                     <RichTextEditor content={content} onChange={setContent} />
                 </div>
 
-
                 <div className="pt-2 flex justify-end">
                     <button type="submit" disabled={isPending} className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                         {isPending && <Loader2 size={18} className="animate-spin" />}
-                        İçeriği Yayınla
+                        {isEdit ? "Değişiklikleri Kaydet" : "İçeriği Yayınla"}
                     </button>
                 </div>
             </form>
         </div>
     );
 }
+
 
 function DeleteAnnouncementButton({ id, user }: { id: string, user: any }) {
     const [isPending, startTransition] = useTransition();
@@ -118,6 +134,7 @@ function DeleteAnnouncementButton({ id, user }: { id: string, user: any }) {
 
 export function AnnouncementsClient({ initialData, user }: { initialData: Announcement[], user: any }) {
     const [search, setSearch] = useState("");
+    const [editingItem, setEditingItem] = useState<Announcement | null>(null);
 
     const filtered = initialData.filter(item => {
         const q = search.toLowerCase();
@@ -127,7 +144,20 @@ export function AnnouncementsClient({ initialData, user }: { initialData: Announ
     return (
         <div className="flex flex-col flex-1 relative bg-slate-50">
             {/* Form */}
-            <AnnouncementForm user={user} />
+            {editingItem ? (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <AnnouncementForm 
+                            user={user} 
+                            editingItem={editingItem} 
+                            onClose={() => setEditingItem(null)} 
+                        />
+                    </div>
+                </div>
+            ) : (
+                <AnnouncementForm user={user} />
+            )}
+
 
             {/* Sticky Search Bar */}
             <div className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-sm pb-6 pt-2 border-b border-slate-200">
@@ -147,11 +177,19 @@ export function AnnouncementsClient({ initialData, user }: { initialData: Announ
             <div className="py-8 max-w-4xl mx-auto w-full flex flex-col gap-8 px-4 sm:px-0">
                 {filtered.map(item => (
                     <div key={item.id} className="relative bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col group hover:shadow-md transition-shadow">
-                        {user ? (
-                            <DeleteAnnouncementButton id={item.id} user={user} />
-                        ) : (
-                            <DeleteAnnouncementButton id={item.id} user={user} />
+                        {user && (
+                            <div className="absolute top-6 right-6 flex items-center gap-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                    onClick={() => setEditingItem(item)}
+                                    className="p-2 bg-white/80 backdrop-blur-sm text-blue-500 border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors shadow-sm"
+                                    title="Düzenle"
+                                >
+                                    <Edit2 size={18} />
+                                </button>
+                                <DeleteAnnouncementButton id={item.id} user={user} />
+                            </div>
                         )}
+
 
                         <div className="flex justify-between items-start mb-6">
                             <h2 className="text-xl md:text-2xl font-bold text-slate-900 leading-tight pr-12">

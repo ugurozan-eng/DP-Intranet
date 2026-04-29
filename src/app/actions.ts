@@ -16,3 +16,12 @@ export async function deleteAnnouncement(id: string) {
     });
     revalidatePath("/");
 }
+
+export async function updateAnnouncement(id: string, data: { title: string, content: string }) {
+    await prisma.announcement.update({
+        where: { id },
+        data
+    });
+    revalidatePath("/");
+}
+
