@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { Search, Plus, Trash2, Loader2 } from "lucide-react";
 import { addAnnouncement, deleteAnnouncement } from "./actions";
+import RichTextEditor from "./components/RichTextEditor";
+
 
 type Announcement = {
     id: string;
@@ -14,19 +16,28 @@ type Announcement = {
 function AnnouncementForm({ user }: { user: any }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
+    const [content, setContent] = useState("");
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
+        const title = formData.get("title") as string;
+
+        if (!content || content === "<p></p>") {
+            alert("İçerik boş olamaz.");
+            return;
+        }
 
         startTransition(async () => {
             await addAnnouncement({
-                title: formData.get("title") as string,
-                content: formData.get("content") as string,
+                title: title,
+                content: content,
             });
             setIsOpen(false);
+            setContent("");
         });
     }
+
 
     if (!isOpen) {
         return (
@@ -69,14 +80,9 @@ function AnnouncementForm({ user }: { user: any }) {
 
                 <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1">İçerik Detayları</label>
-                    <textarea
-                        required
-                        name="content"
-                        rows={6}
-                        placeholder="Örn: 1 Nisan - 30 Nisan arası geçerli tüm şubelerde lazer işlemleri %20 indirimli..."
-                        className="w-full border-slate-300 border rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-y"
-                    />
+                    <RichTextEditor content={content} onChange={setContent} />
                 </div>
+
 
                 <div className="pt-2 flex justify-end">
                     <button type="submit" disabled={isPending} className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
@@ -161,11 +167,11 @@ export function AnnouncementsClient({ initialData, user }: { initialData: Announ
                             </div>
                         </div>
 
-                        <div className="prose prose-slate max-w-none">
-                            <pre className="text-slate-700 font-sans whitespace-pre-wrap text-[15px] leading-relaxed break-words bg-transparent border-0 p-0 m-0">
-                                {item.content}
-                            </pre>
-                        </div>
+                        <div 
+                            className="prose prose-slate max-w-none prose-img:rounded-2xl prose-headings:text-slate-900 prose-p:text-slate-700 prose-a:text-blue-600 hover:prose-a:text-blue-700 prose-table:border prose-table:border-slate-200 prose-th:bg-slate-50 prose-th:p-2 prose-td:p-2 prose-td:border prose-td:border-slate-100"
+                            dangerouslySetInnerHTML={{ __html: item.content }}
+                        />
+
                     </div>
                 ))}
 
