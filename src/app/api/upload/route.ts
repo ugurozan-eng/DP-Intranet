@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { writeFile, mkdir } from 'fs/promises';
+import { join, resolve } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
@@ -17,8 +17,18 @@ export async function POST(request: NextRequest) {
 
         const extension = file.name.split('.').pop();
         const filename = `${uuidv4()}.${extension}`;
-        const path = join(process.cwd(), 'public', 'uploads', filename);
+        
+        // Use resolve to get absolute path from project root
+        const uploadDir = resolve(process.cwd(), 'public', 'uploads');
+        
+        // Ensure directory exists
+        try {
+            await mkdir(uploadDir, { recursive: true });
+        } catch (e) {
+            // Directory might already exist
+        }
 
+        const path = join(uploadDir, filename);
         await writeFile(path, buffer);
 
         return NextResponse.json({ 
@@ -26,7 +36,11 @@ export async function POST(request: NextRequest) {
             filename: filename 
         });
     } catch (error) {
-        console.error('Upload error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        console.error('Upload error details:', error);
+        return NextResponse.json({ 
+            error: 'Internal server error',
+            details: error instanceof Error ? error.message : String(error)
+        }, { status: 500 });
     }
 }
+

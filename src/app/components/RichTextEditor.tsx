@@ -64,6 +64,19 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
         input.onchange = async () => {
             if (input.files?.length) {
                 const file = input.files[0];
+                
+                // Helper to insert as base64
+                const insertBase64 = () => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const result = e.target?.result as string;
+                        if (result) {
+                            editor.chain().focus().setImage({ src: result }).run();
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                };
+
                 const formData = new FormData();
                 formData.append('file', file);
 
@@ -72,18 +85,24 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
                         method: 'POST',
                         body: formData,
                     });
+                    
+                    if (!response.ok) throw new Error('Upload failed');
+                    
                     const data = await response.json();
                     if (data.url) {
                         editor.chain().focus().setImage({ src: data.url }).run();
+                    } else {
+                        insertBase64();
                     }
                 } catch (error) {
-                    console.error('Image upload failed:', error);
-                    alert('Resim yüklenirken bir hata oluştu.');
+                    console.error('Image upload failed, falling back to base64:', error);
+                    insertBase64();
                 }
             }
         };
         input.click();
     };
+
 
     const setLink = () => {
         const previousUrl = editor.getAttributes('link').href;
