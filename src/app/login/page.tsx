@@ -26,7 +26,7 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-slate-900">Intranet Admin</h1>
+                    <h1 className="text-3xl font-bold text-slate-900">DP İntranet</h1>
                     <p className="text-slate-500 mt-2">Dilan Polat İntranet paneline giriş yapın.</p>
                 </div>
 

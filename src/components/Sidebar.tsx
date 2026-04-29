@@ -46,7 +46,7 @@ export function Sidebar({ user }: { user: { email: string, role: string } | null
         <>
             {/* Mobile Top Header */}
             <div className="md:hidden flex h-16 items-center justify-between bg-slate-900 px-4 shrink-0 shadow-md relative z-30">
-                <h1 className="font-bold text-white text-xl">Intranet Admin</h1>
+                <h1 className="font-bold text-white text-xl">DP İntranet</h1>
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="p-1 text-slate-300 hover:text-white transition-colors focus:outline-none"
@@ -70,7 +70,7 @@ export function Sidebar({ user }: { user: { email: string, role: string } | null
                 ${isOpen ? "translate-x-0" : "-translate-x-full"}
             `}>
                 <div className="hidden auto md:flex h-16 shrink-0 items-center px-6 border-b border-slate-800">
-                    <h1 className="font-bold text-white text-xl">Intranet Admin</h1>
+                    <h1 className="font-bold text-white text-xl">DP İntranet</h1>
                 </div>
 
                 <div className="flex flex-1 flex-col overflow-y-auto mt-4 md:mt-0">

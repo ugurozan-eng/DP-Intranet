@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Intranet Admin",
+  title: "DP İntranet",
   description: "Internal CRM & Dashboard",
 };
 
