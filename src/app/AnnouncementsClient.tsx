@@ -65,7 +65,7 @@ function AnnouncementForm({ user, editingItem, onClose }: { user: any, editingIt
     }
 
     return (
-        <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-md mb-10 w-full max-w-3xl mx-auto relative z-20">
+        <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-md mb-10 w-full max-w-5xl mx-auto relative z-20">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-xl text-slate-800">
                     {isEdit ? "Duyuruyu Düzenle" : "Yeni İçerik Oluştur"}
@@ -146,7 +146,7 @@ export function AnnouncementsClient({ initialData, user }: { initialData: Announ
             {/* Form */}
             {editingItem ? (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
                         <AnnouncementForm 
                             user={user} 
                             editingItem={editingItem} 
@@ -161,7 +161,7 @@ export function AnnouncementsClient({ initialData, user }: { initialData: Announ
 
             {/* Sticky Search Bar */}
             <div className="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-sm pb-6 pt-2 border-b border-slate-200">
-                <div className="relative max-w-2xl mx-auto w-full px-4 sm:px-0">
+                <div className="relative max-w-4xl mx-auto w-full px-4 sm:px-0">
                     <Search className="absolute left-8 sm:left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
                         type="text"
@@ -174,7 +174,7 @@ export function AnnouncementsClient({ initialData, user }: { initialData: Announ
             </div>
 
             {/* Announcements Feed */}
-            <div className="py-8 max-w-4xl mx-auto w-full flex flex-col gap-8 px-4 sm:px-0">
+            <div className="py-8 max-w-7xl mx-auto w-full flex flex-col gap-8 px-4 sm:px-0">
                 {filtered.map(item => (
                     <div key={item.id} className="relative bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col group hover:shadow-md transition-shadow">
                         {user && (

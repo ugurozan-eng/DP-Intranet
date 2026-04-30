@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
     Settings,
@@ -15,7 +15,8 @@ import {
     LogOut,
     LogIn,
     X,
-    User as UserIcon
+    User as UserIcon,
+    Search
 } from "lucide-react";
 import { logout } from "@/app/login/actions";
 
@@ -31,7 +32,9 @@ const navigation = [
 
 export function Sidebar({ user }: { user: { email: string, role: string } | null }) {
     const [isOpen, setIsOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
     const pathname = usePathname();
+    const router = useRouter();
 
     if (pathname.startsWith('/login')) return null;
 
@@ -74,7 +77,25 @@ export function Sidebar({ user }: { user: { email: string, role: string } | null
                 </div>
 
                 <div className="flex flex-1 flex-col overflow-y-auto mt-4 md:mt-0">
-                    <nav className="flex-1 space-y-1 px-3 py-4">
+                    <div className="px-4 py-4 md:pt-6 md:pb-2">
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            if (searchQuery.trim().length > 1) {
+                                router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+                                closeSidebar();
+                            }
+                        }} className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Tüm uygulamada ara..."
+                                className="w-full bg-slate-800 text-white placeholder-slate-400 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            />
+                        </form>
+                    </div>
+                    <nav className="flex-1 space-y-1 px-3 py-2">
                         {navItems.map((item) => {
                             const isActive = pathname === item.href;
                             return (
