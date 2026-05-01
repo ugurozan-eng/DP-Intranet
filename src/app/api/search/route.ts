@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
     try {
         // Run queries in parallel
-        const [announcements, services, scripts, quickReplies, employees] = await Promise.all([
+        const [announcements, services, scripts, quickReplies, employees, faqs] = await Promise.all([
             prisma.announcement.findMany({
                 where: {
                     OR: [
@@ -55,6 +55,15 @@ export async function GET(request: Request) {
                     OR: [
                         { name: { contains: q, mode: 'insensitive' } },
                         { department: { contains: q, mode: 'insensitive' } }
+                    ]
+                },
+                take: 10
+            }),
+            prisma.faq.findMany({
+                where: {
+                    OR: [
+                        { question: { contains: q, mode: 'insensitive' } },
+                        { answer: { contains: q, mode: 'insensitive' } }
                     ]
                 },
                 take: 10
@@ -110,6 +119,16 @@ export async function GET(request: Request) {
                 description: `Departman: ${e.department}`,
                 url: '/employees',
                 type: 'Çalışan'
+            });
+        }
+
+        for (const f of faqs) {
+            results.push({
+                id: `faq-${f.id}`,
+                title: f.question,
+                description: f.answer.substring(0, 150) + '...',
+                url: '/faq',
+                type: 'Sıkça Sorulan Soru'
             });
         }
 

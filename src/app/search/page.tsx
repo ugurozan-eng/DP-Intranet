@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
-import { Search, Loader2, ChevronRight, FileText, User as UserIcon, Megaphone, Briefcase, MessageSquare } from 'lucide-react';
+import { Search, Loader2, ChevronRight, FileText, User as UserIcon, Megaphone, Briefcase, MessageSquare, HelpCircle } from 'lucide-react';
 
 type SearchResult = {
     id: string;
@@ -19,6 +19,7 @@ function getIconForType(type: string) {
         case 'İşlem / Fiyat': return <Briefcase className="text-blue-500" size={20} />;
         case 'Bilgi / Satış Scripti': return <MessageSquare className="text-purple-500" size={20} />;
         case 'Hızlı Yanıt': return <FileText className="text-emerald-500" size={20} />;
+        case 'Sıkça Sorulan Soru': return <HelpCircle className="text-yellow-500" size={20} />;
         case 'Çalışan': return <UserIcon className="text-pink-500" size={20} />;
         default: return <FileText className="text-slate-500" size={20} />;
     }

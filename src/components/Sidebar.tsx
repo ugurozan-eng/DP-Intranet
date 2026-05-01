@@ -16,7 +16,8 @@ import {
     LogIn,
     X,
     User as UserIcon,
-    Search
+    Search,
+    HelpCircle
 } from "lucide-react";
 import { logout } from "@/app/login/actions";
 
@@ -28,6 +29,7 @@ const navigation = [
     { name: 'Masraf Formları', href: '/forms', icon: ClipboardList },
     { name: 'İzin Formları', href: '/leaves', icon: ClipboardList },
     { name: 'Çalışanlarımız', href: '/employees', icon: Users },
+    { name: 'Sıkça Sorulan Sorular', href: '/faq', icon: HelpCircle },
 ];
 
 export function Sidebar({ user }: { user: { email: string, role: string } | null }) {

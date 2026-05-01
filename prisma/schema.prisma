@@ -81,6 +81,7 @@ model Faq {
   id        String   @id @default(cuid())
   question  String
   answer    String
+  order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
