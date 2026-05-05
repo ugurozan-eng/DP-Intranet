@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef } from "react";
 import { addQuickReply, deleteQuickReply, updateQuickReply, addCategory, updateCategory, deleteCategory, updateCategoryOrders, updateQuickReplyOrders } from "./actions";
-import { Trash2, Copy, Check, Search, Settings, ChevronUp, ChevronDown, GripVertical } from "lucide-react";
+import { Trash2, Copy, Check, Search, Settings, ChevronUp, ChevronDown, GripVertical, Archive, ArchiveRestore } from "lucide-react";
 
 export function QuickRepliesView({ quickReplies, user, categories, rawCategories }: { quickReplies: any[], user: any, categories: string[], rawCategories: any[] }) {
     const [searchQuery, setSearchQuery] = useState("");
@@ -13,6 +13,8 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
         if (item2) return item2;
         return categories.length > 0 ? categories[0] : "Tümü";
     });
+
+    const categoriesWithArchive = [...categories, "Arşiv"];
 
     const [localReplies, setLocalReplies] = useState(quickReplies);
     const [draggedItem, setDraggedItem] = useState<any>(null);
@@ -27,6 +29,13 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
         const query = searchQuery.toLowerCase();
         const matchesSearch = reply.title.toLowerCase().includes(query) || reply.content.toLowerCase().includes(query);
         
+        if (activeCategory === "Arşiv") {
+            return matchesSearch && reply.isArchived;
+        }
+
+        // Only show non-archived items in regular categories and "Tümü"
+        if (reply.isArchived) return false;
+
         if (activeCategory === "Tümü") return matchesSearch;
         return matchesSearch && (reply.category || "Diğer") === activeCategory;
     });
@@ -99,13 +108,13 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
             </div>
 
             <div className="flex flex-wrap pb-4 mb-4 gap-2">
-                {categories.map(category => (
+                {categoriesWithArchive.map(category => (
                     <button
                         key={category}
                         onClick={() => setActiveCategory(category)}
                         className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                             activeCategory === category 
-                            ? 'bg-slate-900 text-white shadow-sm' 
+                            ? (category === "Arşiv" ? 'bg-amber-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm')
                             : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                         }`}
                     >
@@ -222,6 +231,8 @@ export function EditableReplyCard({ reply, user, categories }: { reply: any, use
                     <CopyBtn text={content} />
                     {user && (
                         <>
+                            <div className="w-px bg-slate-200"></div>
+                            <ArchiveBtn id={reply.id} isArchived={reply.isArchived} user={user} />
                             <div className="w-px bg-slate-200"></div>
                             <DelBtn id={reply.id} user={user} />
                         </>
@@ -350,13 +361,35 @@ export function DelBtn({ id, user }: { id: string, user?: any }) {
                     alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
                     return;
                 }
-                startTransition(() => deleteQuickReply(id));
+                if (confirm("Bu yanıtı silmek istediğinize emin misiniz?")) {
+                    startTransition(() => deleteQuickReply(id));
+                }
             }}
             disabled={isPending}
             className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
             title="Sil"
         >
             <Trash2 size={18} />
+        </button>
+    );
+}
+
+export function ArchiveBtn({ id, isArchived, user }: { id: string, isArchived: boolean, user?: any }) {
+    const [isPending, startTransition] = useTransition();
+    return (
+        <button
+            onClick={() => {
+                if (!user) {
+                    alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
+                    return;
+                }
+                startTransition(() => updateQuickReply(id, { isArchived: !isArchived }));
+            }}
+            disabled={isPending}
+            className={`p-2 transition-colors disabled:opacity-50 ${isArchived ? 'text-amber-600 hover:bg-amber-50' : 'text-slate-500 hover:text-amber-600 hover:bg-amber-50'}`}
+            title={isArchived ? "Arşivden Çıkar" : "Arşivle"}
+        >
+            {isArchived ? <ArchiveRestore size={18} /> : <Archive size={18} />}
         </button>
     );
 }
