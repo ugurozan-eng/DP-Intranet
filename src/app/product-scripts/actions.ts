@@ -3,11 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function addScript(data: { name: string, content: string }) {
+export async function addScript(data: { name: string, content: string, department?: string }) {
     await prisma.script.create({
         data: {
             type: "Bilgi",
-            ...data
+            ...data,
+            department: data.department || 'KLINIK'
         }
     });
     revalidatePath("/product-scripts");

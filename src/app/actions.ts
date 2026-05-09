@@ -3,9 +3,13 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function addAnnouncement(data: { title: string, content: string }) {
+export async function addAnnouncement(data: { title: string, content: string, department?: string }) {
     await prisma.announcement.create({
-        data
+        data: {
+            title: data.title,
+            content: data.content,
+            department: data.department || 'KLINIK'
+        }
     });
     revalidatePath("/");
 }

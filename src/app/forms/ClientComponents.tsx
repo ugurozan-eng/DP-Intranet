@@ -111,7 +111,16 @@ export function ActionBtns({ expenseId, status, userRole, isOwn }: { expenseId: 
 
             {/* DELETE (Own PENDING_MANAGER or Admin) */}
             {(isOwn && status === 'PENDING_MANAGER') || userRole === 'ADMIN' ? (
-                <button onClick={() => startTransition(() => deleteExpense(expenseId))} disabled={isPending} className="p-1.5 text-slate-400 hover:bg-slate-200 hover:text-red-500 rounded-md transition-colors disabled:opacity-50" title="Sil">
+                <button 
+                    onClick={() => {
+                        if (confirm("Bu masraf kaydını silmek istediğinize emin misiniz?")) {
+                            startTransition(() => deleteExpense(expenseId));
+                        }
+                    }} 
+                    disabled={isPending} 
+                    className="p-1.5 text-slate-400 hover:bg-slate-200 hover:text-red-500 rounded-md transition-colors disabled:opacity-50" 
+                    title="Sil"
+                >
                     <Trash2 size={16} />
                 </button>
             ) : null}

@@ -187,7 +187,9 @@ export function DeleteEmployeeButton({ id, user }: { id: string, user: any }) {
                     alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
                     return;
                 }
-                startTransition(() => deleteEmployee(id));
+                if (confirm("Bu çalışanı silmek istediğinize emin misiniz?")) {
+                    startTransition(() => deleteEmployee(id));
+                }
             }}
             disabled={isPending}
             className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm text-red-500 border border-slate-200 rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors z-10 opacity-0 group-hover:opacity-100 disabled:opacity-50 shadow-sm"

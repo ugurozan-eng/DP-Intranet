@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect, useRef } from "react";
 import { addQuickReply, deleteQuickReply, updateQuickReply, addCategory, updateCategory, deleteCategory, updateCategoryOrders, updateQuickReplyOrders } from "./actions";
 import { Trash2, Copy, Check, Search, Settings, ChevronUp, ChevronDown, GripVertical, Archive, ArchiveRestore } from "lucide-react";
 
-export function QuickRepliesView({ quickReplies, user, categories, rawCategories }: { quickReplies: any[], user: any, categories: string[], rawCategories: any[] }) {
+export function QuickRepliesView({ quickReplies, user, categories, rawCategories, department }: { quickReplies: any[], user: any, categories: string[], rawCategories: any[], department: string }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState(() => {
         const item = categories.find(c => c.toLowerCase() === "işlemler");
@@ -24,6 +24,11 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
     useEffect(() => {
         setLocalReplies(quickReplies);
     }, [quickReplies]);
+
+    useEffect(() => {
+        // Reset active category when department changes
+        setActiveCategory(categories.length > 0 ? categories[0] : "Tümü");
+    }, [department, categories]);
 
     const filteredReplies = localReplies.filter(reply => {
         const query = searchQuery.toLowerCase();
@@ -102,8 +107,8 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    {user && <CategoriesManager user={user} rawCategories={rawCategories} />}
-                    <QuickReplyForm user={user} categories={categories} />
+                    {user && <CategoriesManager user={user} rawCategories={rawCategories} department={department} />}
+                    <QuickReplyForm user={user} categories={categories} department={department} />
                 </div>
             </div>
 
@@ -114,7 +119,7 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
                         onClick={() => setActiveCategory(category)}
                         className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                             activeCategory === category 
-                            ? (category === "Arşiv" ? 'bg-amber-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm')
+                            ? (category === "Arşiv" ? 'bg-amber-600 text-white shadow-sm' : (department === 'GUZELLIK' ? 'bg-pink-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm'))
                             : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                         }`}
                     >
@@ -267,7 +272,7 @@ export function EditableReplyCard({ reply, user, categories }: { reply: any, use
     );
 }
 
-function QuickReplyForm({ user, categories }: { user: any, categories: string[] }) {
+function QuickReplyForm({ user, categories, department }: { user: any, categories: string[], department: string }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
@@ -280,6 +285,7 @@ function QuickReplyForm({ user, categories }: { user: any, categories: string[] 
                 title: formData.get("title") as string,
                 content: formData.get("content") as string,
                 category: formData.get("category") as string,
+                department
             });
             setIsOpen(false);
         });
@@ -295,7 +301,7 @@ function QuickReplyForm({ user, categories }: { user: any, categories: string[] 
                     }
                     setIsOpen(true);
                 }}
-                className="px-4 py-2 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors whitespace-nowrap"
+                className={`px-4 py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-slate-900 hover:bg-slate-800'} text-white font-medium rounded-lg transition-colors whitespace-nowrap`}
             >
                 + Yeni Yanıt Ekle
             </button>
@@ -305,13 +311,13 @@ function QuickReplyForm({ user, categories }: { user: any, categories: string[] 
     return (
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full max-w-lg absolute z-10 top-0 right-0">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg text-slate-800">Yeni Hızlı Yanıt</h3>
+                <h3 className="font-bold text-lg text-slate-800">Yeni Hızlı Yanıt ({department === 'GUZELLIK' ? 'Güzellik' : 'Klinik'})</h3>
                 <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Kısayol/Başlık</label>
-                    <input required name="title" type="text" placeholder="Örn: Konum" className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900" />
+                    <input required name="title" type="text" placeholder="Örn: Konum" className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
@@ -324,9 +330,9 @@ function QuickReplyForm({ user, categories }: { user: any, categories: string[] 
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Yanıt İçeriği</label>
-                    <textarea required name="content" rows={4} className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900 resize-none font-mono text-sm"></textarea>
+                    <textarea required name="content" rows={4} className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900 resize-none font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
                 </div>
-                <button type="submit" disabled={isPending} className="w-full py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                <button type="submit" disabled={isPending} className={`w-full py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium rounded-lg transition-colors disabled:opacity-50`}>
                     {isPending ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
             </form>
@@ -376,25 +382,44 @@ export function DelBtn({ id, user }: { id: string, user?: any }) {
 
 export function ArchiveBtn({ id, isArchived, user }: { id: string, isArchived: boolean, user?: any }) {
     const [isPending, startTransition] = useTransition();
+    
+    const handleArchiveToggle = () => {
+        if (!user) {
+            alert("Bu işlemi gerçekleştirmek için sisteme giriş yapmalısınız.");
+            return;
+        }
+
+        const confirmMessage = isArchived 
+            ? "Bu öğeyi arşivden çıkarmak ve eski yerine geri almak istediğinize emin misiniz?" 
+            : "Bu öğeyi arşivlemek istediğinize emin misiniz?";
+
+        if (window.confirm(confirmMessage)) {
+            startTransition(async () => {
+                await updateQuickReply(id, { isArchived: !isArchived });
+            });
+        }
+    };
+
     return (
         <button
-            onClick={() => {
-                if (!user) {
-                    alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
-                    return;
-                }
-                startTransition(() => updateQuickReply(id, { isArchived: !isArchived }));
-            }}
+            onClick={handleArchiveToggle}
             disabled={isPending}
-            className={`p-2 transition-colors disabled:opacity-50 ${isArchived ? 'text-amber-600 hover:bg-amber-50' : 'text-slate-500 hover:text-amber-600 hover:bg-amber-50'}`}
-            title={isArchived ? "Arşivden Çıkar" : "Arşivle"}
+            className={`flex items-center gap-1.5 px-2 py-2 transition-colors disabled:opacity-50 ${isArchived ? 'text-amber-600 hover:bg-amber-50' : 'text-slate-500 hover:text-amber-600 hover:bg-amber-50'}`}
+            title={isArchived ? "Geri Al / Arşivden Çıkar" : "Arşivle"}
         >
-            {isArchived ? <ArchiveRestore size={18} /> : <Archive size={18} />}
+            {isArchived ? (
+                <>
+                    <ArchiveRestore size={18} />
+                    <span className="text-xs font-bold mr-1">Geri Al</span>
+                </>
+            ) : (
+                <Archive size={18} />
+            )}
         </button>
     );
 }
 
-export function CategoriesManager({ user, rawCategories }: { user: any, rawCategories: any[] }) {
+export function CategoriesManager({ user, rawCategories, department }: { user: any, rawCategories: any[], department: string }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
@@ -432,7 +457,7 @@ export function CategoriesManager({ user, rawCategories }: { user: any, rawCateg
     return (
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xl w-full max-w-md absolute z-20 top-0 right-0">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg text-slate-800">Grupları Yönet</h3>
+                <h3 className="font-bold text-lg text-slate-800">Grupları Yönet ({department === 'GUZELLIK' ? 'Güzellik' : 'Klinik'})</h3>
                 <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             
@@ -461,15 +486,15 @@ export function CategoriesManager({ user, rawCategories }: { user: any, rawCateg
                     const name = fd.get("name") as string;
                     if (name.trim()) {
                         startTransition(async () => {
-                            await addCategory(name.trim());
+                            await addCategory(name.trim(), department);
                             (e.target as HTMLFormElement).reset();
                         });
                     }
                 }}
                 className="flex gap-2 pt-3 border-t border-slate-100"
             >
-                <input required type="text" name="name" placeholder="Yeni Grup Ekle..." className="flex-1 border-slate-300 border rounded-lg px-3 py-2 text-sm text-slate-900" />
-                <button type="submit" disabled={isPending} className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 disabled:opacity-50">Ekle</button>
+                <input required type="text" name="name" placeholder="Yeni Grup Ekle..." className="flex-1 border-slate-300 border rounded-lg px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                <button type="submit" disabled={isPending} className={`px-4 py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-slate-900 hover:bg-slate-800'} text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50`}>Ekle</button>
             </form>
         </div>
     );

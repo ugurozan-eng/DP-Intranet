@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { addScript, deleteScript, updateScript } from "./actions";
 import { Trash2, Copy, Check, Loader2 } from "lucide-react";
 
-export function ScriptForm() {
+export function ScriptForm({ department }: { department: string }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
@@ -16,6 +16,7 @@ export function ScriptForm() {
             const data = {
                 name: formData.get("name") as string,
                 content: formData.get("content") as string,
+                department
             };
             await addScript(data);
             setIsOpen(false);
@@ -26,9 +27,9 @@ export function ScriptForm() {
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="px-4 py-2 bg-slate-900 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors"
+                className={`px-4 py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-slate-900 hover:bg-slate-800'} text-white font-medium rounded-lg transition-colors`}
             >
-                + Sayfaya İşlem Ekle
+                + Sayfaya İşlem Scripti Ekle
             </button>
         );
     }
@@ -36,7 +37,7 @@ export function ScriptForm() {
     return (
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8 w-full max-w-lg">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg text-slate-800">Yeni İşlem Scripti Ekle</h3>
+                <h3 className="font-bold text-lg text-slate-800">Yeni İşlem Scripti Ekle ({department === 'GUZELLIK' ? 'Güzellik' : 'Klinik'})</h3>
                 <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -48,7 +49,7 @@ export function ScriptForm() {
                     <label className="block text-sm font-medium text-slate-700 mb-1">Satış / Bilgilendirme Scripti</label>
                     <textarea required name="content" rows={4} placeholder="Örn: Cilt yenileme amacıyla kullanılan bir lazer uygulamasıdır..." className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
                 </div>
-                <button type="submit" disabled={isPending} className="w-full py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                <button type="submit" disabled={isPending} className={`w-full py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium rounded-lg transition-colors disabled:opacity-50`}>
                     {isPending ? "Kaydediliyor..." : "Kaydet"}
                 </button>
             </form>
@@ -78,7 +79,11 @@ export function DeleteScriptButton({ id }: { id: string }) {
     const [isPending, startTransition] = useTransition();
     return (
         <button
-            onClick={() => startTransition(() => deleteScript(id))}
+            onClick={() => {
+                if (confirm("Bu işlemi silmek istediğinize emin misiniz?")) {
+                    startTransition(() => deleteScript(id));
+                }
+            }}
             disabled={isPending}
             className="p-1.5 text-red-500 hover:bg-red-100 rounded-md transition-colors disabled:opacity-50 opacity-0 group-hover:opacity-100"
             title="Sil"

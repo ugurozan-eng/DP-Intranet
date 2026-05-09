@@ -2,13 +2,22 @@ import { prisma } from "@/lib/prisma";
 import { ServiceForm } from "./ServiceForm";
 import { EditableServiceRow } from "./EditableServiceRow";
 import { Download } from "lucide-react";
-import { getUser } from "@/lib/auth";
+import { getUser, checkDepartmentAccess } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
-export default async function ServicesPage() {
+export default async function ServicesPage({ searchParams }: { searchParams: { dept?: string } }) {
+    const dept = searchParams.dept || 'KLINIK';
+    
+    const hasAccess = await checkDepartmentAccess(dept);
+    if (!hasAccess) {
+        redirect("/");
+    }
+
     const user = await getUser();
     const services = await prisma.service.findMany({
+        where: { department: dept },
         orderBy: [
             { category: 'asc' },
             { name: 'asc' }
@@ -33,22 +42,22 @@ export default async function ServicesPage() {
         <div className="p-4 md:p-8 max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">İşlemler / Fiyatlar</h1>
+                    <h1 className="text-3xl font-bold text-slate-900">{dept === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} İşlemler / Fiyatlar</h1>
                     <p className="text-slate-500 mt-2">
-                        Güncel liste ve kampanya fiyatlarını yönetin.
+                        {dept === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} güncel liste ve kampanya fiyatlarını yönetin.
                     </p>
                 </div>
                 <a
-                    href="/api/export-services"
+                    href={`/api/export-services?dept=${dept}`}
                     download="islemler_fiyatlar.xlsx"
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
+                    className={`flex items-center gap-2 px-4 py-2 ${dept === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-emerald-600 hover:bg-emerald-700'} text-white font-medium rounded-lg transition-colors shadow-sm`}
                 >
                     <Download size={18} />
                     Excel İndir
                 </a>
             </div>
 
-            <ServiceForm user={user} />
+            <ServiceForm user={user} department={dept} />
 
             <div className="grid gap-8">
                 {categories.length === 0 && (

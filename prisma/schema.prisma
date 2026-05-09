@@ -69,6 +69,7 @@ model Message {
 
 model Service {
   id            String   @id @default(cuid())
+  department    String   @default("KLINIK")
   category      String
   name          String
   listPrice     Float?
@@ -88,6 +89,7 @@ model Faq {
 
 model QuickReply {
   id         String   @id @default(cuid())
+  department String   @default("KLINIK")
   title      String
   content    String
   category   String   @default("Diğer")
@@ -98,27 +100,32 @@ model QuickReply {
 }
 
 model QuickReplyCategory {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  order     Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  department String   @default("KLINIK")
+  name       String
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([name, department])
 }
 
 model Script {
-  id        String   @id @default(cuid())
-  type      String
-  name      String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  department String   @default("KLINIK")
+  type       String
+  name       String
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Announcement {
-  id        String   @id @default(cuid())
-  title     String
-  content   String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  department String   @default("KLINIK")
+  title      String
+  content    String
+  createdAt  DateTime @default(now())
 }
 
 model Employee {
@@ -162,18 +169,19 @@ model Leave {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  password     String
-  name         String?
-  role         String    @default("USER") // ADMIN, USER, MANAGER, ACCOUNTING
-  managerId    String?
-  manager      User?     @relation("UserManager", fields: [managerId], references: [id])
-  subordinates User[]    @relation("UserManager")
-  expenses     Expense[] @relation("UserExpenses")
-  leaves       Leave[]   @relation("UserLeaves")
-  approvals    Expense[] @relation("ManagerApprovals")
-  leaveApprovals Leave[] @relation("ManagerLeaveApprovals")
-  createdAt    DateTime  @default(now())
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  password           String
+  name               String?
+  role               String    @default("USER") // ADMIN, USER, MANAGER, ACCOUNTING
+  allowedDepartments String[]  @default(["KLINIK", "GUZELLIK"])
+  managerId          String?
+  manager            User?     @relation("UserManager", fields: [managerId], references: [id])
+  subordinates       User[]    @relation("UserManager")
+  expenses           Expense[] @relation("UserExpenses")
+  leaves             Leave[]   @relation("UserLeaves")
+  approvals          Expense[] @relation("ManagerApprovals")
+  leaveApprovals     Leave[]   @relation("ManagerLeaveApprovals")
+  createdAt          DateTime  @default(now())
 }
 

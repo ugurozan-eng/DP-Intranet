@@ -8,7 +8,11 @@ export function DeleteServiceButton({ id }: { id: string }) {
     const [isPending, startTransition] = useTransition();
     return (
         <button
-            onClick={() => startTransition(() => deleteService(id))}
+            onClick={() => {
+                if (confirm("Bu hizmeti silmek istediğinize emin misiniz?")) {
+                    startTransition(() => deleteService(id));
+                }
+            }}
             disabled={isPending}
             className="p-1.5 text-red-500 hover:bg-red-100 rounded-md transition-colors disabled:opacity-50"
             title="Sil"

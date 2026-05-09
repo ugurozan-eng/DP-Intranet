@@ -14,7 +14,7 @@ type Announcement = {
     createdAt: Date;
 };
 
-function AnnouncementForm({ user, editingItem, onClose }: { user: any, editingItem?: Announcement | null, onClose?: () => void }) {
+function AnnouncementForm({ user, editingItem, onClose, department }: { user: any, editingItem?: Announcement | null, onClose?: () => void, department: string }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [content, setContent] = useState(editingItem?.content || "");
@@ -37,7 +37,7 @@ function AnnouncementForm({ user, editingItem, onClose }: { user: any, editingIt
                 await updateAnnouncement(editingItem.id, { title, content });
                 if (onClose) onClose();
             } else {
-                await addAnnouncement({ title, content });
+                await addAnnouncement({ title, content, department });
                 setIsOpen(false);
                 setContent("");
             }
@@ -55,10 +55,10 @@ function AnnouncementForm({ user, editingItem, onClose }: { user: any, editingIt
                         }
                         setIsOpen(true);
                     }}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-medium rounded-full hover:bg-slate-800 transition-colors shadow-md hover:shadow-lg"
+                    className={`flex items-center gap-2 px-5 py-2.5 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-slate-900 hover:bg-slate-800'} text-white font-medium rounded-full transition-colors shadow-md hover:shadow-lg`}
                 >
                     <Plus size={18} />
-                    Yeni Duyuru / Kampanya Ekle
+                    Yeni {department === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} Duyurusu Ekle
                 </button>
             </div>
         );
@@ -68,7 +68,7 @@ function AnnouncementForm({ user, editingItem, onClose }: { user: any, editingIt
         <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-md mb-10 w-full max-w-5xl mx-auto relative z-20">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-xl text-slate-800">
-                    {isEdit ? "Duyuruyu Düzenle" : "Yeni İçerik Oluştur"}
+                    {isEdit ? "Duyuruyu Düzenle" : `Yeni ${department === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} İçeriği`}
                 </h3>
                 <button 
                     onClick={() => {
@@ -89,7 +89,7 @@ function AnnouncementForm({ user, editingItem, onClose }: { user: any, editingIt
                         name="title"
                         type="text"
                         defaultValue={editingItem?.title || ""}
-                        placeholder="Örn: Nisan Ayı Özel Lazer Kampanyası"
+                        placeholder={department === 'GUZELLIK' ? "Örn: Cilt Bakımı Kampanyası" : "Örn: Nisan Ayı Özel Lazer Kampanyası"}
                         className="w-full border-slate-300 border rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                 </div>
@@ -100,7 +100,7 @@ function AnnouncementForm({ user, editingItem, onClose }: { user: any, editingIt
                 </div>
 
                 <div className="pt-2 flex justify-end">
-                    <button type="submit" disabled={isPending} className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                    <button type="submit" disabled={isPending} className={`w-full sm:w-auto px-8 py-3 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-semibold rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2`}>
                         {isPending && <Loader2 size={18} className="animate-spin" />}
                         {isEdit ? "Değişiklikleri Kaydet" : "İçeriği Yayınla"}
                     </button>
@@ -132,7 +132,7 @@ function DeleteAnnouncementButton({ id, user }: { id: string, user: any }) {
     );
 }
 
-export function AnnouncementsClient({ initialData, user }: { initialData: Announcement[], user: any }) {
+export function AnnouncementsClient({ initialData, user, department }: { initialData: Announcement[], user: any, department: string }) {
     const [search, setSearch] = useState("");
     const [editingItem, setEditingItem] = useState<Announcement | null>(null);
 
@@ -151,11 +151,12 @@ export function AnnouncementsClient({ initialData, user }: { initialData: Announ
                             user={user} 
                             editingItem={editingItem} 
                             onClose={() => setEditingItem(null)} 
+                            department={department}
                         />
                     </div>
                 </div>
             ) : (
-                <AnnouncementForm user={user} />
+                <AnnouncementForm user={user} department={department} />
             )}
 
 

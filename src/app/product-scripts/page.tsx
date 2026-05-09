@@ -1,12 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import { ScriptForm, EditableScriptRow } from "./ClientComponents";
-import { getUser } from "@/lib/auth";
+import { getUser, checkDepartmentAccess } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
-export default async function ProductScriptsPage() {
+export default async function ProductScriptsPage({ searchParams }: { searchParams: { dept?: string } }) {
+    const dept = searchParams.dept || 'KLINIK';
+
+    const hasAccess = await checkDepartmentAccess(dept);
+    if (!hasAccess) {
+        redirect("/");
+    }
+
     const user = await getUser();
     const scripts = await prisma.script.findMany({
+        where: { department: dept },
         orderBy: {
             createdAt: 'asc'
         }
@@ -16,14 +25,14 @@ export default async function ProductScriptsPage() {
         <div className="p-4 md:p-8 max-w-7xl mx-auto flex flex-col min-h-screen">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">Bilgi / Satış Scriptleri</h1>
+                    <h1 className="text-3xl font-bold text-slate-900">{dept === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} Bilgi / Satış Scriptleri</h1>
                     <p className="text-slate-500 mt-2">
-                        Çağrı merkezi ve operasyon ekipleri için kampanya, fiyat ve işlem detay scriptleri
+                        {dept === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} çağrı merkezi ve operasyon ekipleri için kampanya, fiyat ve işlem detay scriptleri
                     </p>
                 </div>
             </div>
 
-            {user && <ScriptForm />}
+            {user && <ScriptForm department={dept} />}
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden pb-10">
                 <table className="w-full text-left border-collapse table-fixed">

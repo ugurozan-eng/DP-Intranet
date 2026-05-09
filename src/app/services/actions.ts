@@ -3,9 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function addService(data: { category: string, name: string, listPrice: number, campaignPrice: number }) {
+export async function addService(data: { category: string, name: string, listPrice: number, campaignPrice: number, department?: string }) {
     await prisma.service.create({
-        data
+        data: {
+            ...data,
+            department: data.department || 'KLINIK'
+        }
     });
     revalidatePath("/services");
 }

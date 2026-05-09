@@ -19,6 +19,8 @@ export async function decrypt(input: string): Promise<any> {
     return payload;
 }
 
+import { prisma } from './prisma';
+
 export async function getUser() {
     const session = (await cookies()).get('session')?.value;
     if (!session) return null;
@@ -28,4 +30,19 @@ export async function getUser() {
     } catch {
         return null;
     }
+}
+
+export async function checkDepartmentAccess(dept: string) {
+    const user = await getUser();
+    if (!user) return true; // Default allow for guest (read-only usually)
+    
+    if (user.email === 'ugurozan@gmail.com') return true;
+    
+    const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
+    if (!dbUser) return false;
+    
+    // If no restrictions set, allow all for now to avoid breaking existing users
+    if (!dbUser.allowedDepartments || dbUser.allowedDepartments.length === 0) return true;
+    
+    return dbUser.allowedDepartments.includes(dept);
 }

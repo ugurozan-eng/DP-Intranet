@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
     Settings,
     FileText,
@@ -17,35 +17,61 @@ import {
     X,
     User as UserIcon,
     Search,
-    HelpCircle
+    HelpCircle,
+    ChevronDown,
+    ChevronRight,
+    Stethoscope,
+    Sparkles
 } from "lucide-react";
 import { logout } from "@/app/login/actions";
 
-const navigation = [
+const deptNavigation = [
     { name: 'Duyurular / Kampanyalar', href: '/', icon: Megaphone },
     { name: 'İşlemler / Fiyatlar', href: '/services', icon: Briefcase },
     { name: 'Bilgi / Satış Scriptleri', href: '/product-scripts', icon: MessageSquare },
     { name: 'Hızlı Yanıtlar', href: '/scripts', icon: FileText },
+];
+
+const globalNavigation = [
     { name: 'Masraf Formları', href: '/forms', icon: ClipboardList },
     { name: 'İzin Formları', href: '/leaves', icon: ClipboardList },
     { name: 'Çalışanlarımız', href: '/employees', icon: Users },
     { name: 'Sıkça Sorulan Sorular', href: '/faq', icon: HelpCircle },
 ];
 
-export function Sidebar({ user }: { user: { email: string, role: string } | null }) {
+export function Sidebar({ user }: { user: { email: string, role: string, allowedDepartments?: string[] } | null }) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [openDepts, setOpenDepts] = useState<{ [key: string]: boolean }>({
+        "KLINIK": true,
+        "GUZELLIK": false
+    });
+
     const pathname = usePathname();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const currentDept = searchParams.get('dept') || 'KLINIK';
+
+    // Auto open the department if user is in it
+    useEffect(() => {
+        if (currentDept) {
+            setOpenDepts(prev => ({ ...prev, [currentDept]: true }));
+        }
+    }, [currentDept]);
 
     if (pathname.startsWith('/login')) return null;
 
     const closeSidebar = () => setIsOpen(false);
 
-    const navItems = [...navigation];
-    if (user?.role === 'ADMIN') {
-        navItems.push({ name: 'Settings', href: '/settings', icon: Settings });
-    }
+    const toggleDept = (dept: string) => {
+        setOpenDepts(prev => ({ ...prev, [dept]: !prev[dept] }));
+    };
+
+    const isAllowed = (dept: string) => {
+        if (!user) return false;
+        if (user.email === 'ugurozan@gmail.com') return true;
+        return user.allowedDepartments?.includes(dept);
+    };
 
     return (
         <>
@@ -83,7 +109,7 @@ export function Sidebar({ user }: { user: { email: string, role: string } | null
                         <form onSubmit={(e) => {
                             e.preventDefault();
                             if (searchQuery.trim().length > 1) {
-                                router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+                                router.push(`/search?q=${encodeURIComponent(searchQuery)}&dept=${currentDept}`);
                                 closeSidebar();
                             }
                         }} className="relative">
@@ -97,15 +123,95 @@ export function Sidebar({ user }: { user: { email: string, role: string } | null
                             />
                         </form>
                     </div>
+
                     <nav className="flex-1 space-y-1 px-3 py-2">
-                        {navItems.map((item) => {
+                        {/* Department - Klinik */}
+                        {isAllowed("KLINIK") && (
+                            <div className="mb-2">
+                                <button
+                                    onClick={() => toggleDept("KLINIK")}
+                                    className={`w-full group flex items-center justify-between px-3 py-2 text-sm font-bold rounded-md transition-colors ${currentDept === 'KLINIK' ? 'text-blue-400' : 'text-slate-100 hover:bg-slate-800'}`}
+                                >
+                                    <div className="flex items-center">
+                                        <Stethoscope className="mr-3 h-5 w-5 flex-shrink-0" />
+                                        Klinik
+                                    </div>
+                                    {openDepts["KLINIK"] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                </button>
+                                {openDepts["KLINIK"] && (
+                                    <div className="mt-1 ml-4 space-y-1 border-l border-slate-800 pl-2">
+                                        {deptNavigation.map((item) => {
+                                            const href = `${item.href === '/' ? '' : item.href}?dept=KLINIK`;
+                                            const isActive = pathname === item.href && currentDept === 'KLINIK';
+                                            return (
+                                                <Link
+                                                    key={`KLINIK-${item.name}`}
+                                                    href={href}
+                                                    onClick={closeSidebar}
+                                                    className={`group flex items-center px-3 py-2 text-xs font-medium rounded-md transition-colors ${isActive
+                                                        ? "bg-slate-800 text-white"
+                                                        : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+                                                        }`}
+                                                >
+                                                    <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
+                                                    {item.name}
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Department - Güzellik Merkezi */}
+                        {isAllowed("GUZELLIK") && (
+                            <div className="mb-2">
+                                <button
+                                    onClick={() => toggleDept("GUZELLIK")}
+                                    className={`w-full group flex items-center justify-between px-3 py-2 text-sm font-bold rounded-md transition-colors ${currentDept === 'GUZELLIK' ? 'text-pink-400' : 'text-slate-100 hover:bg-slate-800'}`}
+                                >
+                                    <div className="flex items-center">
+                                        <Sparkles className="mr-3 h-5 w-5 flex-shrink-0" />
+                                        Güzellik Merkezi
+                                    </div>
+                                    {openDepts["GUZELLIK"] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                </button>
+                                {openDepts["GUZELLIK"] && (
+                                    <div className="mt-1 ml-4 space-y-1 border-l border-slate-800 pl-2">
+                                        {deptNavigation.map((item) => {
+                                            const href = `${item.href === '/' ? '' : item.href}?dept=GUZELLIK`;
+                                            const isActive = pathname === item.href && currentDept === 'GUZELLIK';
+                                            return (
+                                                <Link
+                                                    key={`GUZELLIK-${item.name}`}
+                                                    href={href}
+                                                    onClick={closeSidebar}
+                                                    className={`group flex items-center px-3 py-2 text-xs font-medium rounded-md transition-colors ${isActive
+                                                        ? "bg-slate-800 text-white"
+                                                        : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+                                                        }`}
+                                                >
+                                                    <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
+                                                    {item.name}
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="my-4 border-t border-slate-800 pt-4"></div>
+
+                        {/* Global Navigation */}
+                        {globalNavigation.map((item) => {
                             const isActive = pathname === item.href;
                             return (
                                 <Link
                                     key={item.name}
                                     href={item.href}
                                     onClick={closeSidebar}
-                                    className={`group flex items-center px-3 py-3 md:py-2 text-sm font-medium rounded-md transition-colors ${isActive
+                                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${isActive
                                         ? "bg-slate-800 text-white"
                                         : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
                                         }`}
@@ -119,6 +225,20 @@ export function Sidebar({ user }: { user: { email: string, role: string } | null
                                 </Link>
                             );
                         })}
+
+                        {user?.role === 'ADMIN' && (
+                            <Link
+                                href="/settings"
+                                onClick={closeSidebar}
+                                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${pathname === '/settings'
+                                    ? "bg-slate-800 text-white"
+                                    : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
+                                    }`}
+                            >
+                                <Settings className="mr-3 h-5 w-5 flex-shrink-0 transition-colors text-slate-400 group-hover:text-white" />
+                                Settings
+                            </Link>
+                        )}
                     </nav>
                 </div>
 
@@ -155,3 +275,4 @@ export function Sidebar({ user }: { user: { email: string, role: string } | null
         </>
     );
 }
+
