@@ -40,6 +40,8 @@ export async function checkDepartmentAccess(dept: string) {
     
     const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
     if (!dbUser) return false;
+
+    if (dbUser.role === 'USER') return true;
     
     // If no restrictions set, allow all for now to avoid breaking existing users
     if (!dbUser.allowedDepartments || dbUser.allowedDepartments.length === 0) return true;

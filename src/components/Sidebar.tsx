@@ -141,7 +141,7 @@ export function Sidebar({ user }: { user: { email: string, role: string, allowed
                                 {openDepts["KLINIK"] && (
                                     <div className="mt-1 ml-4 space-y-1 border-l border-slate-800 pl-2">
                                         {deptNavigation.map((item) => {
-                                            const href = `${item.href === '/' ? '' : item.href}?dept=KLINIK`;
+                                            const href = `${item.href}?dept=KLINIK`;
                                             const isActive = pathname === item.href && currentDept === 'KLINIK';
                                             return (
                                                 <Link
@@ -179,7 +179,7 @@ export function Sidebar({ user }: { user: { email: string, role: string, allowed
                                 {openDepts["GUZELLIK"] && (
                                     <div className="mt-1 ml-4 space-y-1 border-l border-slate-800 pl-2">
                                         {deptNavigation.map((item) => {
-                                            const href = `${item.href === '/' ? '' : item.href}?dept=GUZELLIK`;
+                                            const href = `${item.href}?dept=GUZELLIK`;
                                             const isActive = pathname === item.href && currentDept === 'GUZELLIK';
                                             return (
                                                 <Link
