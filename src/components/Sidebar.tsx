@@ -70,7 +70,8 @@ export function Sidebar({ user }: { user: { email: string, role: string, allowed
     const isAllowed = (dept: string) => {
         if (!user) return false;
         if (user.email === 'ugurozan@gmail.com') return true;
-        return user.allowedDepartments?.includes(dept);
+        if (user.role === 'USER' || user.role === 'ADMIN') return true;
+        return user.allowedDepartments ? user.allowedDepartments.includes(dept) : true;
     };
 
     return (
