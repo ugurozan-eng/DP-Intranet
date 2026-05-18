@@ -25,12 +25,17 @@ export async function addQuickReply(data: { title: string, content: string, cate
     revalidatePath("/scripts");
 }
 
-export async function deleteQuickReply(id: string) {
-    await prisma.quickReply.delete({ where: { id } });
+export async function deleteQuickReply(id: string, department: string) {
+    await prisma.quickReply.deleteMany({ where: { id, department } });
     revalidatePath("/scripts");
 }
 
-export async function updateQuickReply(id: string, data: Partial<{ title: string, content: string, category: string, isArchived: boolean }>) {
+export async function updateQuickReply(id: string, data: Partial<{ title: string, content: string, category: string, isArchived: boolean }>, department?: string) {
+    if (department) {
+        // Verify the record belongs to the expected department before updating
+        const record = await prisma.quickReply.findFirst({ where: { id, department } });
+        if (!record) return;
+    }
     await prisma.quickReply.update({
         where: { id },
         data
@@ -45,8 +50,8 @@ export async function addCategory(name: string, department?: string) {
     revalidatePath("/scripts");
 }
 
-export async function updateCategory(id: string, newName: string) {
-    const cat = await prisma.quickReplyCategory.findUnique({ where: { id }});
+export async function updateCategory(id: string, newName: string, department?: string) {
+    const cat = await prisma.quickReplyCategory.findFirst({ where: { id, ...(department ? { department } : {}) }});
     if (!cat) return;
 
     await prisma.$transaction([
@@ -62,8 +67,8 @@ export async function updateCategory(id: string, newName: string) {
     revalidatePath("/scripts");
 }
 
-export async function deleteCategory(id: string) {
-    const cat = await prisma.quickReplyCategory.findUnique({ where: { id }});
+export async function deleteCategory(id: string, department?: string) {
+    const cat = await prisma.quickReplyCategory.findFirst({ where: { id, ...(department ? { department } : {}) }});
     if (!cat) return;
 
     await prisma.$transaction([

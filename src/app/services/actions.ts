@@ -13,12 +13,16 @@ export async function addService(data: { category: string, name: string, listPri
     revalidatePath("/services");
 }
 
-export async function deleteService(id: string) {
-    await prisma.service.delete({ where: { id } });
+export async function deleteService(id: string, department: string) {
+    await prisma.service.deleteMany({ where: { id, department } });
     revalidatePath("/services");
 }
 
-export async function updateServicePrice(id: string, type: 'listPrice' | 'campaignPrice', value: number) {
+export async function updateServicePrice(id: string, type: 'listPrice' | 'campaignPrice', value: number, department?: string) {
+    if (department) {
+        const record = await prisma.service.findFirst({ where: { id, department } });
+        if (!record) return;
+    }
     await prisma.service.update({
         where: { id },
         data: {
@@ -28,7 +32,11 @@ export async function updateServicePrice(id: string, type: 'listPrice' | 'campai
     revalidatePath("/services");
 }
 
-export async function updateServiceName(id: string, name: string) {
+export async function updateServiceName(id: string, name: string, department?: string) {
+    if (department) {
+        const record = await prisma.service.findFirst({ where: { id, department } });
+        if (!record) return;
+    }
     await prisma.service.update({
         where: { id },
         data: { name }

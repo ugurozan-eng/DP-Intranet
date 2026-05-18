@@ -75,13 +75,13 @@ function CopyBtn({ text }: { text: string }) {
     );
 }
 
-export function DeleteScriptButton({ id }: { id: string }) {
+export function DeleteScriptButton({ id, department }: { id: string, department: string }) {
     const [isPending, startTransition] = useTransition();
     return (
         <button
             onClick={() => {
                 if (confirm("Bu işlemi silmek istediğinize emin misiniz?")) {
-                    startTransition(() => deleteScript(id));
+                    startTransition(() => deleteScript(id, department));
                 }
             }}
             disabled={isPending}
@@ -107,7 +107,7 @@ export function EditableScriptRow({ script, user }: { script: any, user: any }) 
         }
 
         startTransition(async () => {
-            await updateScript(script.id, { name: trimmed });
+            await updateScript(script.id, { name: trimmed }, script.department);
         });
     };
 
@@ -120,7 +120,7 @@ export function EditableScriptRow({ script, user }: { script: any, user: any }) 
         }
 
         startTransition(async () => {
-            await updateScript(script.id, { content: trimmed });
+            await updateScript(script.id, { content: trimmed }, script.department);
         });
     };
 
@@ -144,12 +144,12 @@ export function EditableScriptRow({ script, user }: { script: any, user: any }) 
                             <div className="absolute -left-4 top-0 hidden sm:flex items-center gap-1 bg-slate-50/80 px-1 py-1 rounded-md shadow-sm border border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <CopyBtn text={name} />
                                 <div className="w-px h-4 bg-slate-200"></div>
-                                <DeleteScriptButton id={script.id} />
+                                <DeleteScriptButton id={script.id} department={script.department} />
                             </div>
                             <div className="sm:hidden flex items-center gap-1 bg-slate-50/80 px-1 py-1 rounded-md shadow-sm border border-slate-100 w-fit">
                                 <CopyBtn text={name} />
                                 <div className="w-px h-4 bg-slate-200"></div>
-                                <DeleteScriptButton id={script.id} />
+                                <DeleteScriptButton id={script.id} department={script.department} />
                             </div>
                         </>
                     )}

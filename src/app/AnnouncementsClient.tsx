@@ -34,7 +34,7 @@ function AnnouncementForm({ user, editingItem, onClose, department }: { user: an
 
         startTransition(async () => {
             if (isEdit) {
-                await updateAnnouncement(editingItem.id, { title, content });
+                await updateAnnouncement(editingItem.id, { title, content }, department);
                 if (onClose) onClose();
             } else {
                 await addAnnouncement({ title, content, department });
@@ -111,7 +111,7 @@ function AnnouncementForm({ user, editingItem, onClose, department }: { user: an
 }
 
 
-function DeleteAnnouncementButton({ id, user }: { id: string, user: any }) {
+function DeleteAnnouncementButton({ id, user, department }: { id: string, user: any, department: string }) {
     const [isPending, startTransition] = useTransition();
 
     return (
@@ -121,7 +121,7 @@ function DeleteAnnouncementButton({ id, user }: { id: string, user: any }) {
                     alert("Bu işlemi gerçekleştirmek için sol alttaki menüden sisteme giriş yapmalısınız.");
                     return;
                 }
-                startTransition(() => deleteAnnouncement(id));
+                startTransition(() => deleteAnnouncement(id, department));
             }}
             disabled={isPending}
             className="absolute top-6 right-6 p-2 bg-white/80 backdrop-blur-sm text-red-500 border border-slate-200 rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors z-10 opacity-0 group-hover:opacity-100 disabled:opacity-50 shadow-sm"
@@ -187,7 +187,7 @@ export function AnnouncementsClient({ initialData, user, department }: { initial
                                 >
                                     <Edit2 size={18} />
                                 </button>
-                                <DeleteAnnouncementButton id={item.id} user={user} />
+                                <DeleteAnnouncementButton id={item.id} user={user} department={department} />
                             </div>
                         )}
 

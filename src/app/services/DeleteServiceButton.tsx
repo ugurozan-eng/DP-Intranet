@@ -4,13 +4,13 @@ import { useTransition } from "react";
 import { deleteService } from "./actions";
 import { Trash2 } from "lucide-react";
 
-export function DeleteServiceButton({ id }: { id: string }) {
+export function DeleteServiceButton({ id, department }: { id: string, department: string }) {
     const [isPending, startTransition] = useTransition();
     return (
         <button
             onClick={() => {
                 if (confirm("Bu hizmeti silmek istediğinize emin misiniz?")) {
-                    startTransition(() => deleteService(id));
+                    startTransition(() => deleteService(id, department));
                 }
             }}
             disabled={isPending}

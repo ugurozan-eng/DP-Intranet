@@ -11,6 +11,7 @@ type Props = {
         name: string;
         listPrice: number | null;
         campaignPrice: number | null;
+        department: string;
     },
     user: any
 };
@@ -50,7 +51,7 @@ export function EditableServiceRow({ service, user }: Props) {
         if (type === 'campaignPrice' && finalNum === service.campaignPrice) return;
 
         startTransition(async () => {
-            await updateServicePrice(service.id, type, finalNum);
+            await updateServicePrice(service.id, type, finalNum, service.department);
         });
     };
 
@@ -63,7 +64,7 @@ export function EditableServiceRow({ service, user }: Props) {
         }
 
         startTransition(async () => {
-            await updateServiceName(service.id, trimmed);
+            await updateServiceName(service.id, trimmed, service.department);
         });
     };
 
@@ -87,7 +88,7 @@ export function EditableServiceRow({ service, user }: Props) {
                         {user && (
                             <>
                                 <div className="w-px h-4 bg-slate-200"></div>
-                                <DeleteServiceButton id={service.id} />
+                                <DeleteServiceButton id={service.id} department={service.department} />
                             </>
                         )}
                     </div>

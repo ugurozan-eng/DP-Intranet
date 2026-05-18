@@ -192,7 +192,7 @@ export function EditableReplyCard({ reply, user, categories }: { reply: any, use
         if (!user) return;
         setCategory(val);
         startTransition(async () => {
-            await updateQuickReply(reply.id, { category: val });
+            await updateQuickReply(reply.id, { category: val }, reply.department);
         });
     };
 
@@ -204,7 +204,7 @@ export function EditableReplyCard({ reply, user, categories }: { reply: any, use
             return;
         }
         startTransition(async () => {
-            await updateQuickReply(reply.id, { title: trimmed });
+            await updateQuickReply(reply.id, { title: trimmed }, reply.department);
         });
     };
 
@@ -216,7 +216,7 @@ export function EditableReplyCard({ reply, user, categories }: { reply: any, use
             return;
         }
         startTransition(async () => {
-            await updateQuickReply(reply.id, { content: trimmed });
+            await updateQuickReply(reply.id, { content: trimmed }, reply.department);
         });
     };
 
@@ -237,9 +237,9 @@ export function EditableReplyCard({ reply, user, categories }: { reply: any, use
                     {user && (
                         <>
                             <div className="w-px bg-slate-200"></div>
-                            <ArchiveBtn id={reply.id} isArchived={reply.isArchived} user={user} />
+                            <ArchiveBtn id={reply.id} isArchived={reply.isArchived} user={user} department={reply.department} />
                             <div className="w-px bg-slate-200"></div>
-                            <DelBtn id={reply.id} user={user} />
+                            <DelBtn id={reply.id} user={user} department={reply.department} />
                         </>
                     )}
                 </div>
@@ -358,7 +358,7 @@ export function CopyBtn({ text }: { text: string }) {
     );
 }
 
-export function DelBtn({ id, user }: { id: string, user?: any }) {
+export function DelBtn({ id, user, department }: { id: string, user?: any, department: string }) {
     const [isPending, startTransition] = useTransition();
     return (
         <button
@@ -368,7 +368,7 @@ export function DelBtn({ id, user }: { id: string, user?: any }) {
                     return;
                 }
                 if (confirm("Bu yanıtı silmek istediğinize emin misiniz?")) {
-                    startTransition(() => deleteQuickReply(id));
+                    startTransition(() => deleteQuickReply(id, department));
                 }
             }}
             disabled={isPending}
@@ -380,7 +380,7 @@ export function DelBtn({ id, user }: { id: string, user?: any }) {
     );
 }
 
-export function ArchiveBtn({ id, isArchived, user }: { id: string, isArchived: boolean, user?: any }) {
+export function ArchiveBtn({ id, isArchived, user, department }: { id: string, isArchived: boolean, user?: any, department: string }) {
     const [isPending, startTransition] = useTransition();
     
     const handleArchiveToggle = () => {
@@ -395,7 +395,7 @@ export function ArchiveBtn({ id, isArchived, user }: { id: string, isArchived: b
 
         if (window.confirm(confirmMessage)) {
             startTransition(async () => {
-                await updateQuickReply(id, { isArchived: !isArchived });
+                await updateQuickReply(id, { isArchived: !isArchived }, department);
             });
         }
     };
@@ -472,6 +472,7 @@ export function CategoriesManager({ user, rawCategories, department }: { user: a
                         onMoveDown={() => handleMove(index, 'down')}
                         canMoveUp={index > 0}
                         canMoveDown={index < rawCategories.length - 1}
+                        department={department}
                     />
                 ))}
                 {rawCategories.length === 0 && (
@@ -500,7 +501,7 @@ export function CategoriesManager({ user, rawCategories, department }: { user: a
     );
 }
 
-function CategoryEditRow({ category, isPending, startTransition, onMoveUp, onMoveDown, canMoveUp, canMoveDown }: { category: any, isPending: boolean, startTransition: React.TransitionStartFunction, onMoveUp: () => void, onMoveDown: () => void, canMoveUp: boolean, canMoveDown: boolean }) {
+function CategoryEditRow({ category, isPending, startTransition, onMoveUp, onMoveDown, canMoveUp, canMoveDown, department }: { category: any, isPending: boolean, startTransition: React.TransitionStartFunction, onMoveUp: () => void, onMoveDown: () => void, canMoveUp: boolean, canMoveDown: boolean, department: string }) {
     const [name, setName] = useState(category.name);
 
     return (
@@ -515,7 +516,7 @@ function CategoryEditRow({ category, isPending, startTransition, onMoveUp, onMov
                 onChange={e => setName(e.target.value)}
                 onBlur={() => {
                     if (name.trim() && name !== category.name) {
-                        startTransition(async () => await updateCategory(category.id, name.trim()));
+                        startTransition(async () => await updateCategory(category.id, name.trim(), department));
                     } else {
                         setName(category.name);
                     }
@@ -526,7 +527,7 @@ function CategoryEditRow({ category, isPending, startTransition, onMoveUp, onMov
             <button 
                 onClick={() => {
                     if(confirm(`"${category.name}" grubunu silmek istediğinize emin misiniz? Bu gruptaki yanıtlar "Diğer" grubuna taşınacaktır.`)) {
-                        startTransition(async () => await deleteCategory(category.id));
+                        startTransition(async () => await deleteCategory(category.id, department));
                     }
                 }}
                 disabled={isPending} 
