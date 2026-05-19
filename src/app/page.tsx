@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage({ searchParams }: { searchParams: { dept?: string } }) {
+export default async function DashboardPage(props: { searchParams: Promise<{ dept?: string }> }) {
+  const searchParams = await props.searchParams;
   const dept = searchParams.dept || 'KLINIK';
   
   const hasAccess = await checkDepartmentAccess(dept);

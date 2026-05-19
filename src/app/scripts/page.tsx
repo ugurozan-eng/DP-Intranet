@@ -14,7 +14,8 @@ const DEFAULT_CATEGORIES = [
   "Diğer"
 ];
 
-export default async function ScriptsPage({ searchParams }: { searchParams: { dept?: string } }) {
+export default async function ScriptsPage(props: { searchParams: Promise<{ dept?: string }> }) {
+    const searchParams = await props.searchParams;
     const dept = searchParams.dept || 'KLINIK';
 
     const hasAccess = await checkDepartmentAccess(dept);
