@@ -55,10 +55,10 @@ function AnnouncementForm({ user, editingItem, onClose, department }: { user: an
                         }
                         setIsOpen(true);
                     }}
-                    className={`flex items-center gap-2 px-5 py-2.5 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-slate-900 hover:bg-slate-800'} text-white font-medium rounded-full transition-colors shadow-md hover:shadow-lg`}
+                    className={`flex items-center gap-2 px-5 py-2.5 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : (department === 'DENTAL' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-slate-900 hover:bg-slate-800')} text-white font-medium rounded-full transition-colors shadow-md hover:shadow-lg`}
                 >
                     <Plus size={18} />
-                    Yeni {department === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} Duyurusu Ekle
+                    Yeni {department === 'GUZELLIK' ? 'Güzellik Merkezi' : (department === 'DENTAL' ? 'DP Dental' : 'Klinik')} Duyurusu Ekle
                 </button>
             </div>
         );
@@ -68,7 +68,7 @@ function AnnouncementForm({ user, editingItem, onClose, department }: { user: an
         <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-md mb-10 w-full max-w-5xl mx-auto relative z-20">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-xl text-slate-800">
-                    {isEdit ? "Duyuruyu Düzenle" : `Yeni ${department === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} İçeriği`}
+                    {isEdit ? "Duyuruyu Düzenle" : `Yeni ${department === 'GUZELLIK' ? 'Güzellik Merkezi' : (department === 'DENTAL' ? 'DP Dental' : 'Klinik')} İçeriği`}
                 </h3>
                 <button 
                     onClick={() => {
@@ -89,7 +89,7 @@ function AnnouncementForm({ user, editingItem, onClose, department }: { user: an
                         name="title"
                         type="text"
                         defaultValue={editingItem?.title || ""}
-                        placeholder={department === 'GUZELLIK' ? "Örn: Cilt Bakımı Kampanyası" : "Örn: Nisan Ayı Özel Lazer Kampanyası"}
+                        placeholder={department === 'GUZELLIK' ? "Örn: Cilt Bakımı Kampanyası" : (department === 'DENTAL' ? "Örn: Diş Beyazlatma Kampanyası" : "Örn: Nisan Ayı Özel Lazer Kampanyası")}
                         className="w-full border-slate-300 border rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                 </div>
@@ -100,7 +100,7 @@ function AnnouncementForm({ user, editingItem, onClose, department }: { user: an
                 </div>
 
                 <div className="pt-2 flex justify-end">
-                    <button type="submit" disabled={isPending} className={`w-full sm:w-auto px-8 py-3 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-semibold rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2`}>
+                    <button type="submit" disabled={isPending} className={`w-full sm:w-auto px-8 py-3 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : (department === 'DENTAL' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-blue-600 hover:bg-blue-700')} text-white font-semibold rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2`}>
                         {isPending && <Loader2 size={18} className="animate-spin" />}
                         {isEdit ? "Değişiklikleri Kaydet" : "İçeriği Yayınla"}
                     </button>

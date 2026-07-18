@@ -43,15 +43,15 @@ export default async function ServicesPage(props: { searchParams: Promise<{ dept
         <div className="p-4 md:p-8 max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">{dept === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} İşlemler / Fiyatlar</h1>
+                    <h1 className="text-3xl font-bold text-slate-900">{dept === 'GUZELLIK' ? 'Güzellik Merkezi' : (dept === 'DENTAL' ? 'DP Dental' : 'Klinik')} İşlemler / Fiyatlar</h1>
                     <p className="text-slate-500 mt-2">
-                        {dept === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} güncel liste ve kampanya fiyatlarını yönetin.
+                        {dept === 'GUZELLIK' ? 'Güzellik Merkezi' : (dept === 'DENTAL' ? 'DP Dental' : 'Klinik')} güncel liste ve kampanya fiyatlarını yönetin.
                     </p>
                 </div>
                 <a
                     href={`/api/export-services?dept=${dept}`}
                     download="islemler_fiyatlar.xlsx"
-                    className={`flex items-center gap-2 px-4 py-2 ${dept === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-emerald-600 hover:bg-emerald-700'} text-white font-medium rounded-lg transition-colors shadow-sm`}
+                    className={`flex items-center gap-2 px-4 py-2 ${dept === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : (dept === 'DENTAL' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-emerald-600 hover:bg-emerald-700')} text-white font-medium rounded-lg transition-colors shadow-sm`}
                 >
                     <Download size={18} />
                     Excel İndir

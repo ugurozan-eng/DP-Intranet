@@ -21,7 +21,8 @@ import {
     ChevronDown,
     ChevronRight,
     Stethoscope,
-    Sparkles
+    Sparkles,
+    Smile
 } from "lucide-react";
 import { logout } from "@/app/login/actions";
 
@@ -44,7 +45,8 @@ export function Sidebar({ user }: { user: { email: string, role: string, allowed
     const [searchQuery, setSearchQuery] = useState("");
     const [openDepts, setOpenDepts] = useState<{ [key: string]: boolean }>({
         "KLINIK": true,
-        "GUZELLIK": false
+        "GUZELLIK": false,
+        "DENTAL": false
     });
 
     const pathname = usePathname();
@@ -185,6 +187,44 @@ export function Sidebar({ user }: { user: { email: string, role: string, allowed
                                             return (
                                                 <Link
                                                     key={`GUZELLIK-${item.name}`}
+                                                    href={href}
+                                                    onClick={closeSidebar}
+                                                    className={`group flex items-center px-3 py-2 text-xs font-medium rounded-md transition-colors ${isActive
+                                                        ? "bg-slate-800 text-white"
+                                                        : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+                                                        }`}
+                                                >
+                                                    <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
+                                                    {item.name}
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Department - DP Dental */}
+                        {isAllowed("DENTAL") && (
+                            <div className="mb-2">
+                                <button
+                                    onClick={() => toggleDept("DENTAL")}
+                                    className={`w-full group flex items-center justify-between px-3 py-2 text-sm font-bold rounded-md transition-colors ${currentDept === 'DENTAL' ? 'text-teal-400' : 'text-slate-100 hover:bg-slate-800'}`}
+                                >
+                                    <div className="flex items-center">
+                                        <Smile className="mr-3 h-5 w-5 flex-shrink-0" />
+                                        DP Dental
+                                    </div>
+                                    {openDepts["DENTAL"] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                </button>
+                                {openDepts["DENTAL"] && (
+                                    <div className="mt-1 ml-4 space-y-1 border-l border-slate-800 pl-2">
+                                        {deptNavigation.map((item) => {
+                                            const href = `${item.href}?dept=DENTAL`;
+                                            const isActive = pathname === item.href && currentDept === 'DENTAL';
+                                            return (
+                                                <Link
+                                                    key={`DENTAL-${item.name}`}
                                                     href={href}
                                                     onClick={closeSidebar}
                                                     className={`group flex items-center px-3 py-2 text-xs font-medium rounded-md transition-colors ${isActive

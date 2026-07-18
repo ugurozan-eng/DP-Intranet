@@ -30,7 +30,7 @@ export function ServiceForm({ user, department }: { user: any, department: strin
                     }
                     setIsOpen(true);
                 }}
-                className={`px-4 py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-slate-900 hover:bg-slate-800'} text-white font-medium rounded-lg transition-colors`}
+                className={`px-4 py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : (department === 'DENTAL' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-slate-900 hover:bg-slate-800')} text-white font-medium rounded-lg transition-colors`}
             >
                 + Sayfaya İşlem Ekle
             </button>
@@ -40,7 +40,7 @@ export function ServiceForm({ user, department }: { user: any, department: strin
     return (
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8 w-full max-w-lg">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg text-slate-800">Yeni İşlem Ekle ({department === 'GUZELLIK' ? 'Güzellik' : 'Klinik'})</h3>
+                <h3 className="font-bold text-lg text-slate-800">Yeni İşlem Ekle ({department === 'GUZELLIK' ? 'Güzellik' : (department === 'DENTAL' ? 'Dental' : 'Klinik')})</h3>
                 <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,7 +59,7 @@ export function ServiceForm({ user, department }: { user: any, department: strin
                         <input required name="campaignPrice" type="number" step="0.01" className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
                     </div>
                 </div>
-                <button type="submit" className={`w-full py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium rounded-lg transition-colors`}>
+                <button type="submit" className={`w-full py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : (department === 'DENTAL' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-blue-600 hover:bg-blue-700')} text-white font-medium rounded-lg transition-colors`}>
                     Kaydet
                 </button>
             </form>

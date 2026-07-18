@@ -28,7 +28,7 @@ export default async function DashboardPage(props: { searchParams: Promise<{ dep
       <div className="mb-6 flex-shrink-0">
         <h1 className="text-3xl font-bold text-slate-900">Duyurular / Kampanyalar</h1>
         <p className="text-slate-500 mt-2">
-          {dept === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} içi güncel duyurular, kampanya bilgileri ve önemli mesajlar
+          {dept === 'GUZELLIK' ? 'Güzellik Merkezi' : (dept === 'DENTAL' ? 'DP Dental' : 'Klinik')} içi güncel duyurular, kampanya bilgileri ve önemli mesajlar
         </p>
       </div>
 

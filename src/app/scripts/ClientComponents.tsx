@@ -119,7 +119,7 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
                         onClick={() => setActiveCategory(category)}
                         className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                             activeCategory === category 
-                            ? (category === "Arşiv" ? 'bg-amber-600 text-white shadow-sm' : (department === 'GUZELLIK' ? 'bg-pink-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm'))
+                            ? (category === "Arşiv" ? 'bg-amber-600 text-white shadow-sm' : (department === 'GUZELLIK' ? 'bg-pink-600 text-white shadow-sm' : (department === 'DENTAL' ? 'bg-teal-600 text-white shadow-sm' : 'bg-slate-900 text-white shadow-sm')))
                             : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                         }`}
                     >
@@ -301,7 +301,7 @@ function QuickReplyForm({ user, categories, department }: { user: any, categorie
                     }
                     setIsOpen(true);
                 }}
-                className={`px-4 py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-slate-900 hover:bg-slate-800'} text-white font-medium rounded-lg transition-colors whitespace-nowrap`}
+                className={`px-4 py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : (department === 'DENTAL' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-slate-900 hover:bg-slate-800')} text-white font-medium rounded-lg transition-colors whitespace-nowrap`}
             >
                 + Yeni Yanıt Ekle
             </button>
@@ -311,7 +311,7 @@ function QuickReplyForm({ user, categories, department }: { user: any, categorie
     return (
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full max-w-lg absolute z-10 top-0 right-0">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg text-slate-800">Yeni Hızlı Yanıt ({department === 'GUZELLIK' ? 'Güzellik' : 'Klinik'})</h3>
+                <h3 className="font-bold text-lg text-slate-800">Yeni Hızlı Yanıt ({department === 'GUZELLIK' ? 'Güzellik' : (department === 'DENTAL' ? 'Dental' : 'Klinik')})</h3>
                 <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -332,7 +332,7 @@ function QuickReplyForm({ user, categories, department }: { user: any, categorie
                     <label className="block text-sm font-medium text-slate-700 mb-1">Yanıt İçeriği</label>
                     <textarea required name="content" rows={4} className="w-full border-slate-300 border rounded-lg px-3 py-2 text-slate-900 resize-none font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
                 </div>
-                <button type="submit" disabled={isPending} className={`w-full py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium rounded-lg transition-colors disabled:opacity-50`}>
+                <button type="submit" disabled={isPending} className={`w-full py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : (department === 'DENTAL' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-blue-600 hover:bg-blue-700')} text-white font-medium rounded-lg transition-colors disabled:opacity-50`}>
                     {isPending ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
             </form>
@@ -457,7 +457,7 @@ export function CategoriesManager({ user, rawCategories, department }: { user: a
     return (
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xl w-full max-w-md absolute z-20 top-0 right-0">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg text-slate-800">Grupları Yönet ({department === 'GUZELLIK' ? 'Güzellik' : 'Klinik'})</h3>
+                <h3 className="font-bold text-lg text-slate-800">Grupları Yönet ({department === 'GUZELLIK' ? 'Güzellik' : (department === 'DENTAL' ? 'Dental' : 'Klinik')})</h3>
                 <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             
@@ -495,7 +495,7 @@ export function CategoriesManager({ user, rawCategories, department }: { user: a
                 className="flex gap-2 pt-3 border-t border-slate-100"
             >
                 <input required type="text" name="name" placeholder="Yeni Grup Ekle..." className="flex-1 border-slate-300 border rounded-lg px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                <button type="submit" disabled={isPending} className={`px-4 py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : 'bg-slate-900 hover:bg-slate-800'} text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50`}>Ekle</button>
+                <button type="submit" disabled={isPending} className={`px-4 py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : (department === 'DENTAL' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-slate-900 hover:bg-slate-800')} text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50`}>Ekle</button>
             </form>
         </div>
     );

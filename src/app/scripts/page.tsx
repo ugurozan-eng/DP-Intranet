@@ -53,8 +53,8 @@ export default async function ScriptsPage(props: { searchParams: Promise<{ dept?
     return (
         <div className="p-4 md:p-8 max-w-[1700px] w-full mx-auto">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-900">{dept === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} Hızlı Yanıtlar</h1>
-                <p className="text-slate-500 mt-2">{dept === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} sık sorulan sorular için hazır mesaj şablonları.</p>
+                <h1 className="text-3xl font-bold text-slate-900">{dept === 'GUZELLIK' ? 'Güzellik Merkezi' : (dept === 'DENTAL' ? 'DP Dental' : 'Klinik')} Hızlı Yanıtlar</h1>
+                <p className="text-slate-500 mt-2">{dept === 'GUZELLIK' ? 'Güzellik Merkezi' : (dept === 'DENTAL' ? 'DP Dental' : 'Klinik')} sık sorulan sorular için hazır mesaj şablonları.</p>
             </div>
 
             <div className="relative">

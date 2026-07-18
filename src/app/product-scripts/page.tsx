@@ -26,9 +26,9 @@ export default async function ProductScriptsPage(props: { searchParams: Promise<
         <div className="p-4 md:p-8 max-w-7xl mx-auto flex flex-col min-h-screen">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">{dept === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} Bilgi / Satış Scriptleri</h1>
+                    <h1 className="text-3xl font-bold text-slate-900">{dept === 'GUZELLIK' ? 'Güzellik Merkezi' : (dept === 'DENTAL' ? 'DP Dental' : 'Klinik')} Bilgi / Satış Scriptleri</h1>
                     <p className="text-slate-500 mt-2">
-                        {dept === 'GUZELLIK' ? 'Güzellik Merkezi' : 'Klinik'} çağrı merkezi ve operasyon ekipleri için kampanya, fiyat ve işlem detay scriptleri
+                        {dept === 'GUZELLIK' ? 'Güzellik Merkezi' : (dept === 'DENTAL' ? 'DP Dental' : 'Klinik')} çağrı merkezi ve operasyon ekipleri için kampanya, fiyat ve işlem detay scriptleri
                     </p>
                 </div>
             </div>
