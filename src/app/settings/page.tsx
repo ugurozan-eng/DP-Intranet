@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { UserForm, DeleteUserButton } from "./ClientComponents";
+import { UserForm, DeleteUserButton, SitePasswordForm } from "./ClientComponents";
+import { getSitePassword } from "@/lib/siteLock";
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,8 @@ export default async function SettingsPage() {
         redirect("/login");
     }
 
+    const currentSitePassword = await getSitePassword();
+
     const users = await prisma.user.findMany({
         orderBy: {
             createdAt: 'asc'
@@ -21,11 +24,13 @@ export default async function SettingsPage() {
     return (
         <div className="p-4 sm:p-8 max-w-7xl mx-auto flex flex-col min-h-screen">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-900">Ayarlar & Kullanıcılar</h1>
+                <h1 className="text-3xl font-bold text-slate-900">Ayarlar & Güvenlik</h1>
                 <p className="text-slate-500 mt-2">
-                    Sistem erişimi olan personelleri yönetin. Sadece Yönetici yetkisine sahip kişiler bu sayfayı görebilir.
+                    Genel site giriş şifresini ve personel hesaplarını yönetin. Sadece Yönetici yetkisine sahip kişiler bu sayfayı görebilir.
                 </p>
             </div>
+
+            <SitePasswordForm initialPassword={currentSitePassword} />
 
             <UserForm />
 

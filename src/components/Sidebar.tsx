@@ -25,6 +25,8 @@ import {
     Smile
 } from "lucide-react";
 import { logout } from "@/app/login/actions";
+import { lockSite } from "@/lib/siteLock";
+import { Lock } from "lucide-react";
 
 const deptNavigation = [
     { name: 'Duyurular / Kampanyalar', href: '/', icon: Megaphone },
@@ -283,7 +285,14 @@ export function Sidebar({ user }: { user: { email: string, role: string, allowed
                     </nav>
                 </div>
 
-                <div className="shrink-0 p-4 border-t border-slate-800">
+                <div className="shrink-0 p-4 border-t border-slate-800 space-y-3">
+                    <form action={lockSite}>
+                        <button className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-400 rounded-md hover:bg-slate-800 hover:text-amber-400 transition-colors">
+                            <Lock size={14} />
+                            Siteyi Kilitle
+                        </button>
+                    </form>
+
                     {user ? (
                         <div className="flex flex-col space-y-3">
                             <div className="flex items-center gap-3 px-2">
