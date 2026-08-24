@@ -63,7 +63,7 @@ export function Sidebar({ user }: { user: { email: string, role: string, allowed
         }
     }, [currentDept]);
 
-    if (pathname.startsWith('/login')) return null;
+    if (pathname.startsWith('/login') || pathname.startsWith('/unlock')) return null;
 
     const closeSidebar = () => setIsOpen(false);
 
