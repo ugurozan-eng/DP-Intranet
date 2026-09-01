@@ -19,6 +19,7 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
     const categoriesWithArchive = [...categories, "Arşiv"];
 
     const [localReplies, setLocalReplies] = useState(quickReplies);
+    const [localCategories, setLocalCategories] = useState(rawCategories);
     const [draggedItem, setDraggedItem] = useState<any>(null);
     const [dragOverItem, setDragOverItem] = useState<any>(null);
     const [isPending, startTransition] = useTransition();
@@ -26,6 +27,10 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
     useEffect(() => {
         setLocalReplies(quickReplies);
     }, [quickReplies]);
+
+    useEffect(() => {
+        setLocalCategories(rawCategories);
+    }, [rawCategories]);
 
     useEffect(() => {
         if (department === 'KLINIK') {
@@ -53,13 +58,34 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
                 reply.category === "Kampanyalar" ||
                 reply.topic === "Kampanya" ||
                 reply.title.toLowerCase().includes("kampanya") ||
-                reply.content.toLowerCase().includes("kampanya")
+                reply.content.toLowerCase().includes("kampanya") ||
+                reply.title.toLowerCase().includes("kmp") ||
+                reply.content.toLowerCase().includes("kmp")
             );
         }
 
         if (activeCategory === "Tümü") return matchesSearch;
         return matchesSearch && (reply.category || "Diğer") === activeCategory;
     });
+
+    const handleSidebarMove = (index: number, direction: 'up' | 'down') => {
+        if (!user) return;
+        if (direction === 'up' && index === 0) return;
+        if (direction === 'down' && index === localCategories.length - 1) return;
+
+        const newOrder = [...localCategories];
+        const swapIndex = direction === 'up' ? index - 1 : index + 1;
+        const temp = newOrder[index];
+        newOrder[index] = newOrder[swapIndex];
+        newOrder[swapIndex] = temp;
+
+        setLocalCategories(newOrder);
+
+        const updates = newOrder.map((cat, i) => ({ id: cat.id, order: i }));
+        startTransition(async () => {
+            await updateCategoryOrders(updates);
+        });
+    };
 
     const handleDragStart = (e: React.DragEvent, reply: any) => {
         if (!user) {
@@ -115,106 +141,138 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
             r.category === "Kampanyalar" ||
             r.topic === "Kampanya" ||
             r.title.toLowerCase().includes("kampanya") ||
-            r.content.toLowerCase().includes("kampanya")
+            r.content.toLowerCase().includes("kampanya") ||
+            r.title.toLowerCase().includes("kmp") ||
+            r.content.toLowerCase().includes("kmp")
         )).length;
 
         return (
-            <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex flex-col md:flex-row gap-5">
                 {/* Left Services Navigation Column */}
-                <div className="w-full md:w-64 shrink-0 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm self-start space-y-4">
-                    <div className="flex items-center justify-between px-2 pb-3 border-b border-slate-100">
+                <div className="w-full md:w-60 shrink-0 bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-sm self-start space-y-3">
+                    <div className="flex items-center justify-between px-1.5 pb-2.5 border-b border-slate-100">
                         <div className="flex items-center gap-2">
-                            <Tag size={16} className="text-blue-600" />
-                            <h3 className="font-bold text-slate-800 text-sm tracking-wide uppercase">Hizmetler</h3>
+                            <Tag size={15} className="text-blue-600" />
+                            <h3 className="font-bold text-slate-800 text-xs tracking-wider uppercase">Hizmetler</h3>
                         </div>
-                        {user && <CategoriesManager user={user} rawCategories={rawCategories} department={department} />}
+                        {user && <CategoriesManager user={user} rawCategories={localCategories} department={department} />}
                     </div>
 
                     {/* Highlighted Kampanyalar Button */}
                     <button
                         onClick={() => setActiveCategory("Kampanyalar")}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold text-sm transition-all ${
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all duration-150 ${
                             activeCategory === "Kampanyalar"
-                            ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white ring-2 ring-amber-300 shadow-md scale-[1.02]"
-                            : "bg-gradient-to-r from-amber-50 to-amber-100/60 text-amber-900 border border-amber-200/80 hover:bg-amber-100"
+                            ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white ring-2 ring-amber-300 shadow-md shadow-amber-500/20 scale-[1.01]"
+                            : "bg-gradient-to-r from-amber-50 to-amber-100/60 text-amber-900 border border-amber-200/80 hover:bg-amber-100/80 hover:translate-x-0.5 active:scale-[0.98]"
                         }`}
                     >
                         <div className="flex items-center gap-2">
-                            <Star size={16} className={activeCategory === "Kampanyalar" ? "fill-white text-white" : "fill-amber-500 text-amber-500"} />
+                            <Star size={15} className={activeCategory === "Kampanyalar" ? "fill-white text-white" : "fill-amber-500 text-amber-500"} />
                             <span>Kampanyalar</span>
                         </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                            activeCategory === "Kampanyalar" ? "bg-white/20 text-white" : "bg-amber-200/70 text-amber-900"
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                            activeCategory === "Kampanyalar" ? "bg-white/25 text-white" : "bg-amber-200/70 text-amber-900"
                         }`}>
                             {campaignCount}
                         </span>
                     </button>
 
-                    {/* Services List */}
-                    <div className="space-y-1 max-h-[520px] overflow-y-auto pr-1">
-                        {rawCategories.filter(cat => cat.name !== "Kampanyalar").map(cat => {
+                    {/* Extended Services List with In-Sidebar Reordering */}
+                    <div className="space-y-1 max-h-[calc(100vh-230px)] min-h-[500px] overflow-y-auto pr-1">
+                        {localCategories.filter(cat => cat.name !== "Kampanyalar").map((cat, index) => {
                             const count = localReplies.filter(r => !r.isArchived && (r.category || "Diğer") === cat.name).length;
                             const isActive = activeCategory === cat.name;
+
                             return (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => setActiveCategory(cat.name)}
-                                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                                        isActive
-                                        ? "bg-slate-900 text-white font-semibold shadow-sm translate-x-1"
-                                        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                                    }`}
-                                >
-                                    <span className="truncate">{cat.name}</span>
-                                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold shrink-0 ${
-                                        isActive ? "bg-slate-800 text-slate-200" : "bg-slate-100 text-slate-500"
-                                    }`}>
-                                        {count}
-                                    </span>
-                                </button>
+                                <div key={cat.id} className="group/item relative flex items-center">
+                                    <button
+                                        onClick={() => setActiveCategory(cat.name)}
+                                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold tracking-tight transition-all duration-150 ${
+                                            isActive
+                                            ? "bg-slate-900 text-white font-bold shadow-sm shadow-slate-900/20 translate-x-1"
+                                            : "text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 hover:translate-x-0.5 active:scale-[0.98]"
+                                        } ${user ? "pr-12" : ""}`}
+                                    >
+                                        <span className="truncate">{cat.name}</span>
+                                        <span className={`text-[11px] px-1.5 py-0.2 rounded-md font-bold shrink-0 ${
+                                            isActive ? "bg-slate-800 text-slate-200" : "bg-slate-100 text-slate-500"
+                                        }`}>
+                                            {count}
+                                        </span>
+                                    </button>
+
+                                    {/* Quick Reorder Arrows directly in sidebar */}
+                                    {user && (
+                                        <div className="absolute right-1 flex items-center opacity-0 group-hover/item:opacity-100 transition-opacity bg-white/90 backdrop-blur-xs rounded-md shadow-xs border border-slate-200/70 p-0.5">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleSidebarMove(index, 'up');
+                                                }}
+                                                disabled={index === 0 || isPending}
+                                                className="p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-20 hover:bg-slate-100 rounded"
+                                                title="Yukarı Taşı"
+                                            >
+                                                <ChevronUp size={13} />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleSidebarMove(index, 'down');
+                                                }}
+                                                disabled={index === localCategories.length - 1 || isPending}
+                                                className="p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-20 hover:bg-slate-100 rounded"
+                                                title="Aşağı Taşı"
+                                            >
+                                                <ChevronDown size={13} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             );
                         })}
                     </div>
 
                     {/* System Views: Tümü & Arşiv */}
-                    <div className="pt-3 border-t border-slate-100 space-y-1">
+                    <div className="pt-2.5 border-t border-slate-100 space-y-1">
                         <button
                             onClick={() => setActiveCategory("Tümü")}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                                 activeCategory === "Tümü"
-                                ? "bg-blue-600 text-white"
+                                ? "bg-blue-600 text-white shadow-sm"
                                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
                             }`}
                         >
                             <span>Tüm Hizmetler</span>
-                            <span>{localReplies.filter(r => !r.isArchived).length}</span>
+                            <span className="text-[11px] font-bold">{localReplies.filter(r => !r.isArchived).length}</span>
                         </button>
 
                         <button
                             onClick={() => setActiveCategory("Arşiv")}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                                 activeCategory === "Arşiv"
-                                ? "bg-amber-600 text-white"
+                                ? "bg-amber-600 text-white shadow-sm"
                                 : "text-slate-500 hover:bg-slate-100 hover:text-amber-700"
                             }`}
                         >
                             <span>Arşivdeki Yanıtlar</span>
-                            <span>{localReplies.filter(r => r.isArchived).length}</span>
+                            <span className="text-[11px] font-bold">{localReplies.filter(r => r.isArchived).length}</span>
                         </button>
                     </div>
                 </div>
 
-                {/* Right Cards Area */}
+                {/* Right Cards Area (4 Columns Grid & Compact Height) */}
                 <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3.5 mb-4">
                         <div className="relative w-full max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                             <input
                                 type="text"
                                 placeholder={`${activeCategory} içinde arayın...`}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
+                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-xs text-sm"
                             />
                         </div>
                         <QuickReplyForm 
@@ -225,7 +283,8 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {/* 4 Columns Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-3.5">
                         {filteredReplies.map(reply => (
                             <div
                                 key={reply.id}
@@ -242,8 +301,8 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
                     </div>
 
                     {filteredReplies.length === 0 && (
-                        <div className="text-center py-16 rounded-2xl border-2 border-dashed border-slate-200 bg-white text-slate-500 mt-4">
-                            <p className="font-semibold text-slate-700 text-base">Bu bölümde henüz yanıt bulunmuyor.</p>
+                        <div className="text-center py-14 rounded-2xl border-2 border-dashed border-slate-200 bg-white text-slate-500 mt-4">
+                            <p className="font-semibold text-slate-700 text-sm">Bu bölümde henüz yanıt bulunmuyor.</p>
                             <p className="text-xs text-slate-400 mt-1">Yukarıdaki "+ Yeni Yanıt Ekle" butonunu kullanarak bu hizmete yanıt ekleyebilirsiniz.</p>
                         </div>
                     )}
@@ -288,7 +347,7 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
                 {filteredReplies.map(reply => (
                     <div
                         key={reply.id}
@@ -394,24 +453,24 @@ export function EditableReplyCard({ reply, user, categories, department }: { rep
     };
 
     return (
-        <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col relative group transition-all ${user ? 'cursor-grab active:cursor-grabbing hover:shadow-md' : 'hover:shadow-md'} h-full overflow-hidden`}>
-            {/* Card Top Header */}
-            <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/80 rounded-t-2xl font-medium text-slate-800 relative flex flex-col gap-1 pr-20">
+        <div className={`bg-white rounded-xl shadow-xs border border-slate-200/90 flex flex-col relative group transition-all duration-150 hover:shadow-md hover:border-slate-300 ${user ? 'cursor-grab active:cursor-grabbing' : ''} h-full overflow-hidden`}>
+            {/* Card Top Header (Compact) */}
+            <div className="px-3 py-2 border-b border-slate-100 bg-slate-50/75 rounded-t-xl font-medium text-slate-800 relative flex flex-col gap-0.5 pr-16">
                 <div className="flex items-center">
-                    {user && <GripVertical size={15} className="text-slate-300 mr-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                    {user && <GripVertical size={13} className="text-slate-300 mr-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />}
                     <input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         onBlur={(e) => handleTitleBlur(e.target.value)}
                         readOnly={!user}
-                        className={`bg-transparent outline-none w-full font-bold text-slate-900 transition-colors ${user ? 'hover:bg-white focus:bg-white focus:ring-2 focus:ring-blue-100 px-2 py-0.5 -ml-1 rounded cursor-text' : 'cursor-default'}`}
+                        className={`bg-transparent outline-none w-full font-bold text-slate-900 text-xs transition-colors ${user ? 'hover:bg-white focus:bg-white focus:ring-1 focus:ring-blue-100 px-1 py-0.5 -ml-1 rounded cursor-text' : 'cursor-default'}`}
                     />
                 </div>
 
                 {/* Subcategory / Topic Header */}
-                <div className="flex items-center text-xs font-semibold text-blue-600 pl-0.5">
-                    <span className="text-[10px] text-slate-400 mr-1 font-mono uppercase">Konu:</span>
+                <div className="flex items-center text-[11px] font-semibold text-blue-600 pl-0.5">
+                    <span className="text-[9px] text-slate-400 mr-1 font-mono uppercase tracking-wider">Konu:</span>
                     <input
                         type="text"
                         value={topic}
@@ -419,12 +478,12 @@ export function EditableReplyCard({ reply, user, categories, department }: { rep
                         onBlur={(e) => handleTopicBlur(e.target.value)}
                         readOnly={!user}
                         placeholder="Örn: Kalıcılık / Fiyat"
-                        className={`bg-transparent outline-none font-semibold text-blue-700 transition-colors text-xs ${user ? 'hover:bg-white focus:bg-white focus:ring-1 focus:ring-blue-200 px-1 rounded cursor-text' : 'cursor-default'}`}
+                        className={`bg-transparent outline-none font-semibold text-blue-700 transition-colors text-[11px] ${user ? 'hover:bg-white focus:bg-white focus:ring-1 focus:ring-blue-200 px-1 rounded cursor-text' : 'cursor-default'}`}
                     />
                 </div>
 
                 {/* Action buttons (Copy, Archive, Delete) */}
-                <div className="absolute top-3 right-3 flex opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-sm border border-slate-200 rounded-lg shrink-0 overflow-hidden">
+                <div className="absolute top-2 right-2 flex opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-xs border border-slate-200 rounded-lg shrink-0 overflow-hidden">
                     <CopyBtn text={content} />
                     {user && (
                         <>
@@ -437,15 +496,15 @@ export function EditableReplyCard({ reply, user, categories, department }: { rep
                 </div>
             </div>
 
-            {/* Card Body */}
-            <div className="p-4 flex-1 flex flex-col">
-                <div className="mb-2 flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Hizmet:</span>
+            {/* Card Body (Compact - ~50% reduced height) */}
+            <div className="p-3 flex-1 flex flex-col">
+                <div className="mb-1.5 flex items-center justify-between">
+                    <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">Hizmet:</span>
                     <select
                         value={categories.includes(category) ? category : ""}
                         onChange={(e) => handleCategoryChange(e.target.value)}
                         disabled={!user}
-                        className={`text-xs font-medium px-2 py-1 outline-none rounded-lg border ${user ? 'border-slate-200 hover:border-blue-300 focus:ring-1 focus:ring-blue-300' : 'border-transparent bg-transparent cursor-default appearance-none'} text-slate-700 bg-slate-50`}
+                        className={`text-[11px] font-medium px-1.5 py-0.5 outline-none rounded-md border ${user ? 'border-slate-200 hover:border-blue-300 focus:ring-1 focus:ring-blue-300' : 'border-transparent bg-transparent cursor-default appearance-none'} text-slate-700 bg-slate-50`}
                     >
                         <option value="" disabled>Hizmet Seçiniz</option>
                         {categories.filter(c => c !== "Tümü").map(cat => (
@@ -459,8 +518,8 @@ export function EditableReplyCard({ reply, user, categories, department }: { rep
                     onChange={(e) => setContent(e.target.value)}
                     onBlur={(e) => handleContentBlur(e.target.value)}
                     readOnly={!user}
-                    rows={4}
-                    className={`w-full text-sm text-slate-600 outline-none resize-y ${user ? 'hover:bg-slate-50 focus:bg-slate-50 focus:ring-2 focus:ring-blue-100 p-2 -m-2 rounded-xl transition-colors mt-2' : 'bg-transparent cursor-default mt-2'}`}
+                    rows={2.5}
+                    className={`w-full text-xs text-slate-600 outline-none resize-y min-h-[50px] max-h-[140px] leading-relaxed ${user ? 'hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-blue-100 p-1.5 -m-1 rounded-lg transition-colors mt-1' : 'bg-transparent cursor-default mt-1'}`}
                 />
             </div>
         </div>
@@ -497,7 +556,7 @@ function QuickReplyForm({ user, categories, department, defaultCategory }: { use
                     }
                     setIsOpen(true);
                 }}
-                className={`px-4 py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : (department === 'DENTAL' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-blue-600 hover:bg-blue-700')} text-white font-medium rounded-xl transition-colors whitespace-nowrap shadow-sm`}
+                className={`px-3.5 py-2 ${department === 'GUZELLIK' ? 'bg-pink-600 hover:bg-pink-700' : (department === 'DENTAL' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-blue-600 hover:bg-blue-700')} text-white font-medium text-xs rounded-xl transition-colors whitespace-nowrap shadow-xs`}
             >
                 + Yeni Yanıt Ekle
             </button>
@@ -549,10 +608,10 @@ function CopyBtn({ text }: { text: string }) {
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
             }}
-            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
             title="Kopyala"
         >
-            {copied ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
+            {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
         </button>
     );
 }
@@ -571,10 +630,10 @@ export function DelBtn({ id, user, department }: { id: string, user?: any, depar
                 }
             }}
             disabled={isPending}
-            className="p-2 text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+            className="p-1.5 text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
             title="Sil"
         >
-            <Trash2 size={16} />
+            <Trash2 size={14} />
         </button>
     );
 }
@@ -603,10 +662,10 @@ export function ArchiveBtn({ id, isArchived, user, department }: { id: string, i
         <button
             onClick={handleArchiveToggle}
             disabled={isPending}
-            className={`p-2 transition-colors disabled:opacity-50 ${isArchived ? 'text-amber-600 hover:bg-amber-50' : 'text-slate-500 hover:text-amber-600 hover:bg-amber-50'}`}
+            className={`p-1.5 transition-colors disabled:opacity-50 ${isArchived ? 'text-amber-600 hover:bg-amber-50' : 'text-slate-500 hover:text-amber-600 hover:bg-amber-50'}`}
             title={isArchived ? "Geri Al / Arşivden Çıkar" : "Arşivle"}
         >
-            {isArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+            {isArchived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
         </button>
     );
 }
@@ -638,10 +697,10 @@ export function CategoriesManager({ user, rawCategories, department, title }: { 
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold"
+                className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold"
                 title={title || "Hizmetleri Yönet"}
             >
-                <Settings size={16} />
+                <Settings size={15} />
             </button>
         );
     }
@@ -653,7 +712,7 @@ export function CategoriesManager({ user, rawCategories, department, title }: { 
                 <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
             
-            <div className="space-y-3 max-h-60 overflow-y-auto mb-4 pr-2">
+            <div className="space-y-2.5 max-h-72 overflow-y-auto mb-4 pr-2">
                 {rawCategories.map((cat, index) => (
                     <CategoryEditRow 
                         key={cat.id} 
