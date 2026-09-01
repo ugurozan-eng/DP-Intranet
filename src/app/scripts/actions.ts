@@ -15,7 +15,7 @@ export async function deleteScript(id: string) {
     revalidatePath("/scripts");
 }
 
-export async function addQuickReply(data: { title: string, content: string, category: string, department?: string }) {
+export async function addQuickReply(data: { title: string, content: string, category: string, topic?: string, department?: string }) {
     await prisma.quickReply.create({
         data: {
             ...data,
@@ -30,7 +30,7 @@ export async function deleteQuickReply(id: string, department: string) {
     revalidatePath("/scripts");
 }
 
-export async function updateQuickReply(id: string, data: Partial<{ title: string, content: string, category: string, isArchived: boolean }>, department?: string) {
+export async function updateQuickReply(id: string, data: Partial<{ title: string, content: string, category: string, topic: string, isArchived: boolean }>, department?: string) {
     if (department) {
         // Verify the record belongs to the expected department before updating
         const record = await prisma.quickReply.findFirst({ where: { id, department } });

@@ -92,6 +92,7 @@ model QuickReply {
   title      String
   content    String
   category   String   @default("Diğer")
+  topic      String?  @default("İşlem Detayı")
   order      Int      @default(0)
   isArchived Boolean  @default(false)
   createdAt  DateTime @default(now())
