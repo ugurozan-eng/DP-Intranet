@@ -38,6 +38,12 @@ export default async function ScriptsPage(props: { searchParams: Promise<{ dept?
         redirect("/");
     }
 
+    try {
+        await prisma.$executeRawUnsafe(`ALTER TABLE "QuickReply" ADD COLUMN IF NOT EXISTS "topic" TEXT DEFAULT 'İşlem Detayı';`);
+    } catch (e) {
+        console.error("Auto-migration error for topic column:", e);
+    }
+
     let categoriesList = await prisma.quickReplyCategory.findMany({ 
         where: { department: dept },
         orderBy: { order: 'asc' } 
