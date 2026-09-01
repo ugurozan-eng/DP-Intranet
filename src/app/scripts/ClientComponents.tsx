@@ -152,7 +152,7 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
 
                     {/* Services List */}
                     <div className="space-y-1 max-h-[520px] overflow-y-auto pr-1">
-                        {rawCategories.map(cat => {
+                        {rawCategories.filter(cat => cat.name !== "Kampanyalar").map(cat => {
                             const count = localReplies.filter(r => !r.isArchived && (r.category || "Diğer") === cat.name).length;
                             const isActive = activeCategory === cat.name;
                             return (

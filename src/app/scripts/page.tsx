@@ -29,6 +29,91 @@ const DEFAULT_CATEGORIES = [
   "Diğer"
 ];
 
+async function syncKlinikServices() {
+    const OLD_GENERIC_CATEGORIES = [
+        "Kampanyalar",
+        "İşlemler",
+        "Randevu ve Destek",
+        "Randevu ve Bilgi Talebi",
+        "İşlemler ve Ürünler",
+        "Şikayet ve Kapsam Dışı",
+        "Klinik ve Ödeme",
+        "Ürünler Hakkında Det...",
+        "Yönlendirme",
+        "Dış Arama",
+        "Satış Scriptleri",
+        "İşlem Sonrası Şikayetler",
+        "Çapraz Satış"
+    ];
+
+    try {
+        // Remove old generic category records for KLINIK
+        await prisma.quickReplyCategory.deleteMany({
+            where: {
+                department: 'KLINIK',
+                name: { in: OLD_GENERIC_CATEGORIES }
+            }
+        });
+
+        // Ensure DEFAULT_KLINIK_SERVICES are created
+        const existing = await prisma.quickReplyCategory.findMany({ where: { department: 'KLINIK' } });
+        const existingNames = new Set(existing.map(c => c.name));
+        const missing = DEFAULT_KLINIK_SERVICES.filter(s => !existingNames.has(s));
+
+        if (missing.length > 0) {
+            const startOrder = existing.length;
+            await prisma.quickReplyCategory.createMany({
+                data: missing.map((name, i) => ({ name, order: startOrder + i, department: 'KLINIK' })),
+                skipDuplicates: true
+            });
+        }
+
+        // Auto-categorize existing Klinik quick replies into actual medical services
+        const replies = await prisma.quickReply.findMany({ where: { department: 'KLINIK' } });
+        for (const r of replies) {
+            const text = (r.title + " " + r.content + " " + (r.category || "")).toLowerCase();
+            let newCategory = r.category;
+            let newTopic = r.topic || "İşlem Detayı";
+
+            if (text.includes("kampanya") || text.includes("kmp")) {
+                newCategory = "Kampanyalar";
+                newTopic = "Kampanya";
+            } else if (text.includes("botoks")) {
+                newCategory = "Botoks";
+            } else if (text.includes("dolgu") || text.includes("dudak") || text.includes("jawline") || text.includes("çene") || text.includes("ışık") || text.includes("ışıltı") || text.includes("yüz şekillendirme")) {
+                newCategory = "Dolgu";
+            } else if (text.includes("prp") || text.includes("mezoterapi")) {
+                newCategory = "PRP";
+            } else if (text.includes("sıvı yüz") || text.includes("yüz germe")) {
+                newCategory = "Sıvı Yüz germe";
+            } else if (text.includes("ip askı") || text.includes("fransız askı")) {
+                newCategory = "İp askı";
+            } else if (text.includes("full face")) {
+                newCategory = "Full Face";
+            } else if (text.includes("burun")) {
+                newCategory = "Burun dolgusu";
+            } else if (text.includes("fox eyes")) {
+                newCategory = "Fox Eyes";
+            } else if (text.includes("lipoliz")) {
+                newCategory = "Lipoliz";
+            } else if (text.includes("9 nokta") || text.includes("lifting")) {
+                newCategory = "9 Nokta Lifting";
+            } else if (OLD_GENERIC_CATEGORIES.includes(r.category)) {
+                newCategory = "Diğer";
+            }
+
+            if (newCategory !== r.category || newTopic !== r.topic) {
+                await prisma.quickReply.update({
+                    where: { id: r.id },
+                    data: { category: newCategory, topic: newTopic }
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Klinik services sync error:", e);
+    }
+}
+
 export default async function ScriptsPage(props: { searchParams: Promise<{ dept?: string }> }) {
     const searchParams = await props.searchParams;
     const dept = searchParams.dept || 'KLINIK';
@@ -44,41 +129,28 @@ export default async function ScriptsPage(props: { searchParams: Promise<{ dept?
         console.error("Auto-migration error for topic column:", e);
     }
 
+    if (dept === 'KLINIK') {
+        await syncKlinikServices();
+    }
+
     let categoriesList = await prisma.quickReplyCategory.findMany({ 
         where: { department: dept },
         orderBy: { order: 'asc' } 
     });
 
-    const seedCategories = dept === 'KLINIK' ? DEFAULT_KLINIK_SERVICES : DEFAULT_CATEGORIES;
-
-    try {
-        if (categoriesList.length === 0) {
-            // Seed default categories for this department
+    if (categoriesList.length === 0 && dept !== 'KLINIK') {
+        try {
             await prisma.quickReplyCategory.createMany({
-                data: seedCategories.map((c, i) => ({ name: c, order: i, department: dept })),
+                data: DEFAULT_CATEGORIES.map((c, i) => ({ name: c, order: i, department: dept })),
                 skipDuplicates: true
             });
             categoriesList = await prisma.quickReplyCategory.findMany({ 
                 where: { department: dept },
                 orderBy: { order: 'asc' } 
             });
-        } else if (dept === 'KLINIK') {
-            const existingNames = new Set(categoriesList.map(c => c.name));
-            const missing = DEFAULT_KLINIK_SERVICES.filter(s => !existingNames.has(s));
-            if (missing.length > 0) {
-                const startOrder = categoriesList.length;
-                await prisma.quickReplyCategory.createMany({
-                    data: missing.map((name, i) => ({ name, order: startOrder + i, department: dept })),
-                    skipDuplicates: true
-                });
-                categoriesList = await prisma.quickReplyCategory.findMany({ 
-                    where: { department: dept },
-                    orderBy: { order: 'asc' } 
-                });
-            }
+        } catch (e) {
+            console.error("Category seed error:", e);
         }
-    } catch (e) {
-        console.error("Error seeding categories:", e);
     }
     
     // Add "Tümü" to the end as a synthetic option.
