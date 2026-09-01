@@ -454,8 +454,8 @@ export function EditableReplyCard({ reply, user, categories, department }: { rep
 
     return (
         <div className={`bg-white rounded-xl shadow-xs border border-slate-200/90 flex flex-col relative group transition-all duration-150 hover:shadow-md hover:border-slate-300 ${user ? 'cursor-grab active:cursor-grabbing' : ''} h-full overflow-hidden`}>
-            {/* Card Top Header (Compact) */}
-            <div className="px-3 py-2 border-b border-slate-100 bg-slate-50/75 rounded-t-xl font-medium text-slate-800 relative flex flex-col gap-0.5 pr-16">
+            {/* Card Top Header */}
+            <div className="px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/75 rounded-t-xl font-medium text-slate-800 relative flex flex-col gap-0.5 pr-16">
                 <div className="flex items-center">
                     {user && <GripVertical size={13} className="text-slate-300 mr-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />}
                     <input
@@ -483,7 +483,7 @@ export function EditableReplyCard({ reply, user, categories, department }: { rep
                 </div>
 
                 {/* Action buttons (Copy, Archive, Delete) */}
-                <div className="absolute top-2 right-2 flex opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-xs border border-slate-200 rounded-lg shrink-0 overflow-hidden">
+                <div className="absolute top-2.5 right-2.5 flex opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-xs border border-slate-200 rounded-lg shrink-0 overflow-hidden">
                     <CopyBtn text={content} />
                     {user && (
                         <>
@@ -496,15 +496,15 @@ export function EditableReplyCard({ reply, user, categories, department }: { rep
                 </div>
             </div>
 
-            {/* Card Body (Compact - ~50% reduced height) */}
-            <div className="p-3 flex-1 flex flex-col">
-                <div className="mb-1.5 flex items-center justify-between">
-                    <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">Hizmet:</span>
+            {/* Card Body (Adjusted to ~6cm / 225px height) */}
+            <div className="p-3.5 flex-1 flex flex-col">
+                <div className="mb-2 flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Hizmet:</span>
                     <select
                         value={categories.includes(category) ? category : ""}
                         onChange={(e) => handleCategoryChange(e.target.value)}
                         disabled={!user}
-                        className={`text-[11px] font-medium px-1.5 py-0.5 outline-none rounded-md border ${user ? 'border-slate-200 hover:border-blue-300 focus:ring-1 focus:ring-blue-300' : 'border-transparent bg-transparent cursor-default appearance-none'} text-slate-700 bg-slate-50`}
+                        className={`text-[11px] font-medium px-2 py-0.5 outline-none rounded-md border ${user ? 'border-slate-200 hover:border-blue-300 focus:ring-1 focus:ring-blue-300' : 'border-transparent bg-transparent cursor-default appearance-none'} text-slate-700 bg-slate-50`}
                     >
                         <option value="" disabled>Hizmet Seçiniz</option>
                         {categories.filter(c => c !== "Tümü").map(cat => (
@@ -518,8 +518,8 @@ export function EditableReplyCard({ reply, user, categories, department }: { rep
                     onChange={(e) => setContent(e.target.value)}
                     onBlur={(e) => handleContentBlur(e.target.value)}
                     readOnly={!user}
-                    rows={2.5}
-                    className={`w-full text-xs text-slate-600 outline-none resize-y min-h-[50px] max-h-[140px] leading-relaxed ${user ? 'hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-blue-100 p-1.5 -m-1 rounded-lg transition-colors mt-1' : 'bg-transparent cursor-default mt-1'}`}
+                    rows={4}
+                    className={`w-full text-xs text-slate-600 outline-none resize-y min-h-[110px] max-h-[220px] leading-relaxed ${user ? 'hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-blue-100 p-1.5 -m-1 rounded-lg transition-colors mt-1' : 'bg-transparent cursor-default mt-1'}`}
                 />
             </div>
         </div>
