@@ -45,8 +45,29 @@ export async function updateQuickReply(id: string, data: Partial<{ title: string
 
 export async function addCategory(name: string, department?: string) {
     const dept = department || 'KLINIK';
-    const nextOrder = await prisma.quickReplyCategory.count({ where: { department: dept } });
-    await prisma.quickReplyCategory.create({ data: { name, order: nextOrder, department: dept }});
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    try {
+        const existing = await prisma.quickReplyCategory.findFirst({
+            where: {
+                name: trimmed,
+                department: dept
+            }
+        });
+        if (existing) return;
+
+        const nextOrder = await prisma.quickReplyCategory.count({ where: { department: dept } });
+        await prisma.quickReplyCategory.create({ 
+            data: { 
+                name: trimmed, 
+                order: nextOrder, 
+                department: dept 
+            }
+        });
+    } catch (e) {
+        console.error("addCategory error:", e);
+    }
     revalidatePath("/scripts");
 }
 
