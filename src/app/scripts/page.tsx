@@ -45,28 +45,34 @@ export default async function ScriptsPage(props: { searchParams: Promise<{ dept?
 
     const seedCategories = dept === 'KLINIK' ? DEFAULT_KLINIK_SERVICES : DEFAULT_CATEGORIES;
 
-    if (categoriesList.length === 0) {
-        // Seed default categories for this department
-        await prisma.quickReplyCategory.createMany({
-            data: seedCategories.map((c, i) => ({ name: c, order: i, department: dept }))
-        });
-        categoriesList = await prisma.quickReplyCategory.findMany({ 
-            where: { department: dept },
-            orderBy: { order: 'asc' } 
-        });
-    } else if (dept === 'KLINIK') {
-        const existingNames = new Set(categoriesList.map(c => c.name));
-        const missing = DEFAULT_KLINIK_SERVICES.filter(s => !existingNames.has(s));
-        if (missing.length > 0) {
-            const startOrder = categoriesList.length;
+    try {
+        if (categoriesList.length === 0) {
+            // Seed default categories for this department
             await prisma.quickReplyCategory.createMany({
-                data: missing.map((name, i) => ({ name, order: startOrder + i, department: dept }))
+                data: seedCategories.map((c, i) => ({ name: c, order: i, department: dept })),
+                skipDuplicates: true
             });
             categoriesList = await prisma.quickReplyCategory.findMany({ 
                 where: { department: dept },
                 orderBy: { order: 'asc' } 
             });
+        } else if (dept === 'KLINIK') {
+            const existingNames = new Set(categoriesList.map(c => c.name));
+            const missing = DEFAULT_KLINIK_SERVICES.filter(s => !existingNames.has(s));
+            if (missing.length > 0) {
+                const startOrder = categoriesList.length;
+                await prisma.quickReplyCategory.createMany({
+                    data: missing.map((name, i) => ({ name, order: startOrder + i, department: dept })),
+                    skipDuplicates: true
+                });
+                categoriesList = await prisma.quickReplyCategory.findMany({ 
+                    where: { department: dept },
+                    orderBy: { order: 'asc' } 
+                });
+            }
         }
+    } catch (e) {
+        console.error("Error seeding categories:", e);
     }
     
     // Add "Tümü" to the end as a synthetic option.
