@@ -25,7 +25,7 @@ export async function encryptSiteAccess() {
     return await new SignJWT({ siteUnlocked: true })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
-        .setExpirationTime('30d')
+        .setExpirationTime('24h')
         .sign(key);
 }
 
@@ -52,8 +52,8 @@ export async function unlockSite(password: string) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 30 // 30 days
+        path: '/'
+        // Omitted maxAge makes this a browser Session Cookie (expires on browser close)
     });
 
     return { success: true };
