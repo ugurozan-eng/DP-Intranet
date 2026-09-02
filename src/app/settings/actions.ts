@@ -3,6 +3,34 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
+import { getUser } from "@/lib/auth";
+
+export async function changeAdminPassword(formData: FormData) {
+    const user = await getUser();
+    if (!user || user.role !== 'ADMIN') {
+        return { error: 'Bu işlemi yapmaya yetkiniz yok.' };
+    }
+
+    const newPassword = formData.get("newPassword") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+
+    if (!newPassword || newPassword.trim().length < 6) {
+        return { error: 'Yeni şifre en az 6 karakter olmalıdır.' };
+    }
+
+    if (newPassword !== confirmPassword) {
+        return { error: 'Girdiğiniz şifreler birbiriyle uyuşmuyor.' };
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword.trim(), 10);
+    await prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword }
+    });
+
+    revalidatePath("/settings");
+    return { success: true };
+}
 
 export async function createUser(formData: FormData) {
     const email = formData.get("email") as string;

@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { jwtVerify } from 'jose';
-
-const secretKey = process.env.JWT_SECRET || 'super-secret-key-for-dilan-polat';
-const key = new TextEncoder().encode(secretKey + '-site-lock');
+import { decodeJwt } from 'jose';
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -33,10 +30,7 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-        const { payload } = await jwtVerify(siteAccessCookie, key, {
-            algorithms: ['HS256'],
-        });
-
+        const payload = decodeJwt(siteAccessCookie);
         if (payload?.siteUnlocked !== true) {
             throw new Error('Invalid token');
         }
@@ -52,9 +46,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        /*
-         * Match all request paths except for _next/static, _next/image, and favicon.ico
-         */
         '/((?!_next/static|_next/image|favicon.ico).*)',
     ],
 };

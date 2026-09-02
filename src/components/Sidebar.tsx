@@ -26,8 +26,7 @@ import {
     BarChart3
 } from "lucide-react";
 import { logout } from "@/app/login/actions";
-import { lockSite } from "@/lib/siteLock";
-import { Lock } from "lucide-react";
+import { EmergencyLockModal } from "./EmergencyLockModal";
 
 const deptNavigation = [
     { name: 'Duyurular / Kampanyalar', href: '/', icon: Megaphone },
@@ -288,12 +287,7 @@ export function Sidebar({ user }: { user: { email: string, role: string, allowed
                 </div>
 
                 <div className="shrink-0 p-4 border-t border-slate-800 space-y-3">
-                    <form action={lockSite}>
-                        <button className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-400 rounded-md hover:bg-slate-800 hover:text-amber-400 transition-colors">
-                            <Lock size={14} />
-                            Siteyi Kilitle
-                        </button>
-                    </form>
+                    <EmergencyLockModal user={user} />
 
                     {user ? (
                         <div className="flex flex-col space-y-3">

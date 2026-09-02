@@ -180,3 +180,88 @@ export function SitePasswordForm({ initialPassword }: { initialPassword: string 
         </div>
     );
 }
+
+import { changeAdminPassword } from "./actions";
+import { UserCheck } from "lucide-react";
+
+export function AdminPasswordChangeForm({ adminEmail }: { adminEmail: string }) {
+    const [isPending, startTransition] = useTransition();
+    const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        setStatusMessage(null);
+        const form = e.currentTarget;
+        const formData = new FormData(form);
+
+        startTransition(async () => {
+            const res = await changeAdminPassword(formData);
+            if (res.error) {
+                setStatusMessage({ type: 'error', text: res.error });
+            } else {
+                setStatusMessage({ type: 'success', text: 'Admin hesap şifreniz başarıyla güncellendi!' });
+                form.reset();
+                setTimeout(() => setStatusMessage(null), 4000);
+            }
+        });
+    }
+
+    return (
+        <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm mb-10 w-full max-w-2xl">
+            <div className="flex items-center gap-3 mb-6">
+                <div className="bg-indigo-50 p-2.5 rounded-xl text-indigo-600">
+                    <UserCheck size={22} />
+                </div>
+                <div>
+                    <h3 className="font-bold text-lg text-slate-800">Admin Hesap Şifremi Değiştir</h3>
+                    <p className="text-xs text-slate-500">Mevcut Admin hesabınız ({adminEmail}) için yeni bir şifre belirleyin.</p>
+                </div>
+            </div>
+
+            {statusMessage && (
+                <div className={`p-4 rounded-xl mb-6 text-sm flex items-center gap-2.5 ${
+                    statusMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200'
+                }`}>
+                    {statusMessage.type === 'success' ? <CheckCircle2 size={18} /> : <Trash2 size={18} />}
+                    <span className="font-semibold">{statusMessage.text}</span>
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Yeni Şifre</label>
+                        <input
+                            required
+                            name="newPassword"
+                            type="password"
+                            placeholder="••••••••"
+                            className="w-full border-slate-300 border rounded-xl px-4 py-2.5 text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Yeni Şifre (Tekrar)</label>
+                        <input
+                            required
+                            name="confirmPassword"
+                            type="password"
+                            placeholder="••••••••"
+                            className="w-full border-slate-300 border rounded-xl px-4 py-2.5 text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                        />
+                    </div>
+                </div>
+
+                <div className="pt-2">
+                    <button
+                        type="submit"
+                        disabled={isPending}
+                        className="px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {isPending && <Loader2 size={16} className="animate-spin text-white" />}
+                        Hesap Şifremi Güncelle
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+}

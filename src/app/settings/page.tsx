@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { UserForm, DeleteUserButton, SitePasswordForm } from "./ClientComponents";
+import { UserForm, DeleteUserButton, SitePasswordForm, AdminPasswordChangeForm } from "./ClientComponents";
 import { getSitePassword } from "@/lib/siteLock";
 
 export const dynamic = 'force-dynamic';
@@ -29,6 +29,8 @@ export default async function SettingsPage() {
                     Genel site giriş şifresini ve personel hesaplarını yönetin. Sadece Yönetici yetkisine sahip kişiler bu sayfayı görebilir.
                 </p>
             </div>
+
+            <AdminPasswordChangeForm adminEmail={user.email} />
 
             <SitePasswordForm initialPassword={currentSitePassword} />
 

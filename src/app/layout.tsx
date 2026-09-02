@@ -21,12 +21,26 @@ export const metadata: Metadata = {
 import { getUser } from "@/lib/auth";
 import { Suspense } from "react";
 import { PageTracker } from "@/components/PageTracker";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { verifySiteAccess } from "@/lib/siteLock";
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const siteAccessToken = cookieStore.get("site_access")?.value;
+  if (siteAccessToken) {
+    const isTokenValid = await verifySiteAccess(siteAccessToken);
+    if (!isTokenValid) {
+      cookieStore.delete("site_access");
+      cookieStore.delete("session");
+      redirect("/unlock");
+    }
+  }
+
   const user = await getUser();
 
   return (
