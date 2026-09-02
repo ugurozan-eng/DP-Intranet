@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 };
 
 import { getUser } from "@/lib/auth";
+import { Suspense } from "react";
+import { PageTracker } from "@/components/PageTracker";
 
 export default async function RootLayout({
   children,
@@ -32,6 +34,9 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen overflow-hidden flex flex-col md:flex-row bg-slate-50 relative`}
       >
+        <Suspense fallback={null}>
+          <PageTracker />
+        </Suspense>
         <Sidebar user={user} />
         <main className="flex-1 overflow-y-auto">
           {children}

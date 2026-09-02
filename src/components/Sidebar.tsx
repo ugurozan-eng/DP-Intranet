@@ -22,7 +22,8 @@ import {
     ChevronRight,
     Stethoscope,
     Sparkles,
-    Smile
+    Smile,
+    BarChart3
 } from "lucide-react";
 import { logout } from "@/app/login/actions";
 import { lockSite } from "@/lib/siteLock";
@@ -36,6 +37,7 @@ const deptNavigation = [
 ];
 
 const globalNavigation = [
+    { name: 'Raporlar & Kullanım', href: '/reports', icon: BarChart3 },
     { name: 'Masraf Formları', href: '/forms', icon: ClipboardList },
     { name: 'İzin Formları', href: '/leaves', icon: ClipboardList },
     { name: 'Çalışanlarımız', href: '/employees', icon: Users },
