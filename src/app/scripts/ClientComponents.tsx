@@ -1,8 +1,34 @@
 "use client";
 
 import { useState, useTransition, useEffect, useRef } from "react";
-import { addQuickReply, deleteQuickReply, updateQuickReply, addCategory, updateCategory, deleteCategory, updateCategoryOrders, updateQuickReplyOrders } from "./actions";
-import { Trash2, Copy, Check, Search, Settings, ChevronUp, ChevronDown, GripVertical, Archive, ArchiveRestore, Star, Tag } from "lucide-react";
+import { 
+    addQuickReply, 
+    deleteQuickReply, 
+    updateQuickReply, 
+    addCategory, 
+    updateCategory, 
+    deleteCategory, 
+    updateCategoryOrders, 
+    updateQuickReplyOrders,
+    togglePinQuickReply,
+    incrementCopyCount
+} from "./actions";
+import { 
+    Trash2, 
+    Copy, 
+    Check, 
+    Search, 
+    Settings, 
+    ChevronUp, 
+    ChevronDown, 
+    GripVertical, 
+    Archive, 
+    ArchiveRestore, 
+    Star, 
+    Tag, 
+    Pin, 
+    Flame 
+} from "lucide-react";
 
 export function QuickRepliesView({ quickReplies, user, categories, rawCategories, department }: { quickReplies: any[], user: any, categories: string[], rawCategories: any[], department: string }) {
     const [searchQuery, setSearchQuery] = useState("");
@@ -40,33 +66,69 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
         }
     }, [department]);
 
-    const filteredReplies = localReplies.filter(reply => {
+    const filteredReplies = (() => {
         const query = searchQuery.toLowerCase();
-        const matchesSearch = reply.title.toLowerCase().includes(query) || 
-                             reply.content.toLowerCase().includes(query) ||
-                             (reply.topic && reply.topic.toLowerCase().includes(query));
         
         if (activeCategory === "Arşiv") {
-            return matchesSearch && reply.isArchived;
+            return localReplies.filter(reply => {
+                const matches = reply.title.toLowerCase().includes(query) || 
+                                reply.content.toLowerCase().includes(query) ||
+                                (reply.topic && reply.topic.toLowerCase().includes(query));
+                return matches && reply.isArchived;
+            });
         }
 
-        // Only show non-archived items in regular categories, Kampanyalar, and Tümü
-        if (reply.isArchived) return false;
+        // Active non-archived items
+        const activeItems = localReplies.filter(r => !r.isArchived);
+
+        if (activeCategory === "Sık Kullanılanlar") {
+            return activeItems
+                .filter(r => r.isPinned || (r.copyCount && r.copyCount > 0))
+                .filter(r => {
+                    return r.title.toLowerCase().includes(query) || 
+                           r.content.toLowerCase().includes(query) ||
+                           (r.topic && r.topic.toLowerCase().includes(query));
+                })
+                .sort((a, b) => {
+                    // Pinned items first
+                    if (a.isPinned && !b.isPinned) return -1;
+                    if (!a.isPinned && b.isPinned) return 1;
+                    // Then by copyCount descending
+                    return (b.copyCount || 0) - (a.copyCount || 0);
+                });
+        }
 
         if (activeCategory === "Kampanyalar") {
-            return matchesSearch && (
-                reply.category === "Kampanyalar" ||
-                reply.topic === "Kampanya" ||
-                reply.title.toLowerCase().includes("kampanya") ||
-                reply.content.toLowerCase().includes("kampanya") ||
-                reply.title.toLowerCase().includes("kmp") ||
-                reply.content.toLowerCase().includes("kmp")
+            return activeItems.filter(r => {
+                const matches = r.title.toLowerCase().includes(query) || 
+                                r.content.toLowerCase().includes(query) ||
+                                (r.topic && r.topic.toLowerCase().includes(query));
+                return matches && (
+                    r.category === "Kampanyalar" ||
+                    r.topic === "Kampanya" ||
+                    r.title.toLowerCase().includes("kampanya") ||
+                    r.content.toLowerCase().includes("kampanya") ||
+                    r.title.toLowerCase().includes("kmp") ||
+                    r.content.toLowerCase().includes("kmp")
+                );
+            });
+        }
+
+        if (activeCategory === "Tümü") {
+            return activeItems.filter(r => 
+                r.title.toLowerCase().includes(query) || 
+                r.content.toLowerCase().includes(query) ||
+                (r.topic && r.topic.toLowerCase().includes(query))
             );
         }
 
-        if (activeCategory === "Tümü") return matchesSearch;
-        return matchesSearch && (reply.category || "Diğer") === activeCategory;
-    });
+        return activeItems.filter(r => {
+            const matches = r.title.toLowerCase().includes(query) || 
+                            r.content.toLowerCase().includes(query) ||
+                            (r.topic && r.topic.toLowerCase().includes(query));
+            return matches && (r.category || "Diğer") === activeCategory;
+        });
+    })();
 
     const handleSidebarMove = (index: number, direction: 'up' | 'down') => {
         if (!user) return;
@@ -146,10 +208,14 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
             r.content.toLowerCase().includes("kmp")
         )).length;
 
+        const frequentCount = localReplies.filter(r => !r.isArchived && (
+            r.isPinned || (r.copyCount && r.copyCount > 0)
+        )).length;
+
         return (
             <div className="flex flex-col md:flex-row gap-5">
                 {/* Left Services Navigation Column */}
-                <div className="w-full md:w-60 shrink-0 bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-sm self-start space-y-3">
+                <div className="w-full md:w-60 shrink-0 bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-sm self-start space-y-2.5">
                     <div className="flex items-center justify-between px-1.5 pb-2.5 border-b border-slate-100">
                         <div className="flex items-center gap-2">
                             <Tag size={15} className="text-blue-600" />
@@ -178,9 +244,29 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
                         </span>
                     </button>
 
+                    {/* Highlighted Sık Kullanılanlar Button (Pastel Mavi) */}
+                    <button
+                        onClick={() => setActiveCategory("Sık Kullanılanlar")}
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all duration-150 ${
+                            activeCategory === "Sık Kullanılanlar"
+                            ? "bg-sky-600 text-white ring-2 ring-sky-300 shadow-md shadow-sky-600/20 scale-[1.01]"
+                            : "bg-sky-50/90 text-sky-900 border border-sky-200/80 hover:bg-sky-100/80 hover:translate-x-0.5 active:scale-[0.98]"
+                        }`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Pin size={14} className={activeCategory === "Sık Kullanılanlar" ? "fill-white text-white rotate-45" : "fill-sky-600 text-sky-600 rotate-45"} />
+                            <span>Sık Kullanılanlar</span>
+                        </div>
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                            activeCategory === "Sık Kullanılanlar" ? "bg-white/25 text-white" : "bg-sky-200/70 text-sky-900"
+                        }`}>
+                            {frequentCount}
+                        </span>
+                    </button>
+
                     {/* Extended Services List with In-Sidebar Reordering */}
-                    <div className="space-y-1 max-h-[calc(100vh-230px)] min-h-[500px] overflow-y-auto pr-1">
-                        {localCategories.filter(cat => cat.name !== "Kampanyalar").map((cat, index) => {
+                    <div className="space-y-1 max-h-[calc(100vh-270px)] min-h-[460px] overflow-y-auto pr-1">
+                        {localCategories.filter(cat => cat.name !== "Kampanyalar" && cat.name !== "Sık Kullanılanlar").map((cat, index) => {
                             const count = localReplies.filter(r => !r.isArchived && (r.category || "Diğer") === cat.name).length;
                             const isActive = activeCategory === cat.name;
 
@@ -279,7 +365,7 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
                             user={user} 
                             categories={categories} 
                             department={department} 
-                            defaultCategory={activeCategory !== "Tümü" && activeCategory !== "Arşiv" && activeCategory !== "Kampanyalar" ? activeCategory : "Botoks"} 
+                            defaultCategory={activeCategory !== "Tümü" && activeCategory !== "Arşiv" && activeCategory !== "Kampanyalar" && activeCategory !== "Sık Kullanılanlar" ? activeCategory : "Botoks"} 
                         />
                     </div>
 
@@ -303,7 +389,11 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
                     {filteredReplies.length === 0 && (
                         <div className="text-center py-14 rounded-2xl border-2 border-dashed border-slate-200 bg-white text-slate-500 mt-4">
                             <p className="font-semibold text-slate-700 text-sm">Bu bölümde henüz yanıt bulunmuyor.</p>
-                            <p className="text-xs text-slate-400 mt-1">Yukarıdaki "+ Yeni Yanıt Ekle" butonunu kullanarak bu hizmete yanıt ekleyebilirsiniz.</p>
+                            <p className="text-xs text-slate-400 mt-1">
+                                {activeCategory === "Sık Kullanılanlar" 
+                                    ? "Kartların üzerindeki raptiye (📌) ikonuna tıklayarak veya mesajları kopyalayarak buraya ekleyebilirsiniz."
+                                    : "Yukarıdaki '+ Yeni Yanıt Ekle' butonunu kullanarak bu hizmete yanıt ekleyebilirsiniz."}
+                            </p>
                         </div>
                     )}
                 </div>
@@ -375,38 +465,84 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
 }
 
 export function EditableReplyCard({ reply, user, categories, department }: { reply: any, user: any, categories: string[], department?: string }) {
+    const cardRef = useRef<HTMLDivElement>(null);
+    const [customHeight, setCustomHeight] = useState<number | null>(null);
+
     const [title, setTitle] = useState(reply.title);
     const [topic, setTopic] = useState(reply.topic || "İşlem Detayı");
     const [content, setContent] = useState(reply.content);
     const [category, setCategory] = useState(reply.category || "Diğer");
+    const [localIsPinned, setLocalIsPinned] = useState<boolean>(reply.isPinned || false);
+    const [localCopyCount, setLocalCopyCount] = useState<number>(reply.copyCount || 0);
+
     const [isPending, startTransition] = useTransition();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+    // Initialize custom height from localStorage
     useEffect(() => {
-        const savedHeight = localStorage.getItem(`textarea-height-${reply.id}`);
-        if (savedHeight && textareaRef.current) {
-            textareaRef.current.style.height = savedHeight;
+        const saved = localStorage.getItem(`card-height-${reply.id}`);
+        if (saved) {
+            const val = parseInt(saved, 10);
+            if (!isNaN(val)) setCustomHeight(val);
         }
-
-        const resizeObserver = new ResizeObserver((entries) => {
-            for (let entry of entries) {
-                if (entry.target === textareaRef.current) {
-                    const inlineHeight = (entry.target as HTMLElement).style.height;
-                    if (inlineHeight) {
-                        localStorage.setItem(`textarea-height-${reply.id}`, inlineHeight);
-                    }
-                }
-            }
-        });
-
-        if (textareaRef.current) {
-            resizeObserver.observe(textareaRef.current);
-        }
-
-        return () => {
-            resizeObserver.disconnect();
-        };
     }, [reply.id]);
+
+    useEffect(() => {
+        setLocalIsPinned(reply.isPinned || false);
+        setLocalCopyCount(reply.copyCount || 0);
+    }, [reply.isPinned, reply.copyCount]);
+
+    // Resize handling via bottom-right corner grip
+    const handleResizeMouseDown = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const startY = e.clientY;
+        const startH = cardRef.current ? cardRef.current.offsetHeight : 225;
+
+        const onMouseMove = (moveEvt: MouseEvent) => {
+            const delta = moveEvt.clientY - startY;
+            const newH = Math.max(160, Math.min(650, startH + delta));
+            setCustomHeight(newH);
+        };
+
+        const onMouseUp = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            if (cardRef.current) {
+                localStorage.setItem(`card-height-${reply.id}`, cardRef.current.offsetHeight.toString());
+            }
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    };
+
+    const handleResetHeight = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        localStorage.removeItem(`card-height-${reply.id}`);
+        setCustomHeight(null);
+    };
+
+    const handleTogglePin = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!user) {
+            alert("Bu işlem için sol alttaki menüden sisteme giriş yapmalısınız.");
+            return;
+        }
+        const nextPinned = !localIsPinned;
+        setLocalIsPinned(nextPinned);
+        startTransition(async () => {
+            await togglePinQuickReply(reply.id, reply.department || department || 'KLINIK');
+        });
+    };
+
+    const handleCopy = () => {
+        setLocalCopyCount((prev: number) => prev + 1);
+        startTransition(() => {
+            incrementCopyCount(reply.id, reply.department || department || 'KLINIK');
+        });
+    };
 
     const handleCategoryChange = (val: string) => {
         if (!user) return;
@@ -453,38 +589,66 @@ export function EditableReplyCard({ reply, user, categories, department }: { rep
     };
 
     return (
-        <div className={`bg-white rounded-xl shadow-xs border border-slate-200/90 flex flex-col relative group transition-all duration-150 hover:shadow-md hover:border-slate-300 ${user ? 'cursor-grab active:cursor-grabbing' : ''} h-full overflow-hidden`}>
+        <div 
+            ref={cardRef}
+            style={customHeight ? { height: `${customHeight}px` } : undefined}
+            className={`bg-white rounded-xl shadow-xs border border-slate-200/90 flex flex-col relative group transition-all duration-150 hover:shadow-md hover:border-slate-300 ${user ? 'cursor-grab active:cursor-grabbing' : ''} h-full overflow-hidden`}
+        >
             {/* Card Top Header */}
-            <div className="px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/75 rounded-t-xl font-medium text-slate-800 relative flex flex-col gap-0.5 pr-16">
-                <div className="flex items-center">
-                    {user && <GripVertical size={13} className="text-slate-300 mr-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />}
+            <div className="px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/75 rounded-t-xl font-medium text-slate-800 relative flex flex-col gap-0.5 pr-20">
+                <div className="flex items-center gap-1">
+                    {user && <GripVertical size={13} className="text-slate-300 mr-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                    
+                    {/* Pin / Favorite Toggle Button */}
+                    <button
+                        onClick={handleTogglePin}
+                        className={`p-1 rounded-md transition-all shrink-0 ${
+                            localIsPinned 
+                            ? 'text-sky-600 bg-sky-100/80 hover:bg-sky-200/80 scale-105' 
+                            : 'text-slate-300 hover:text-slate-600 hover:bg-slate-200/60 opacity-40 group-hover:opacity-100'
+                        }`}
+                        title={localIsPinned ? "Sık Kullanılanlardan Kaldır" : "Sık Kullanılanlara Sabitle"}
+                    >
+                        <Pin size={13} className={localIsPinned ? "fill-sky-600 rotate-45" : "rotate-45"} />
+                    </button>
+
                     <input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         onBlur={(e) => handleTitleBlur(e.target.value)}
                         readOnly={!user}
-                        className={`bg-transparent outline-none w-full font-bold text-slate-900 text-xs transition-colors ${user ? 'hover:bg-white focus:bg-white focus:ring-1 focus:ring-blue-100 px-1 py-0.5 -ml-1 rounded cursor-text' : 'cursor-default'}`}
+                        className={`bg-transparent outline-none w-full font-bold text-slate-900 text-xs transition-colors ${user ? 'hover:bg-white focus:bg-white focus:ring-1 focus:ring-blue-100 px-1 py-0.5 rounded cursor-text' : 'cursor-default'}`}
                     />
                 </div>
 
-                {/* Subcategory / Topic Header */}
-                <div className="flex items-center text-[11px] font-semibold text-blue-600 pl-0.5">
-                    <span className="text-[9px] text-slate-400 mr-1 font-mono uppercase tracking-wider">Konu:</span>
-                    <input
-                        type="text"
-                        value={topic}
-                        onChange={(e) => setTopic(e.target.value)}
-                        onBlur={(e) => handleTopicBlur(e.target.value)}
-                        readOnly={!user}
-                        placeholder="Örn: Kalıcılık / Fiyat"
-                        className={`bg-transparent outline-none font-semibold text-blue-700 transition-colors text-[11px] ${user ? 'hover:bg-white focus:bg-white focus:ring-1 focus:ring-blue-200 px-1 rounded cursor-text' : 'cursor-default'}`}
-                    />
+                {/* Subcategory / Topic Header & Copy Count Badge */}
+                <div className="flex items-center justify-between text-[11px] font-semibold text-blue-600 pl-0.5">
+                    <div className="flex items-center">
+                        <span className="text-[9px] text-slate-400 mr-1 font-mono uppercase tracking-wider">Konu:</span>
+                        <input
+                            type="text"
+                            value={topic}
+                            onChange={(e) => setTopic(e.target.value)}
+                            onBlur={(e) => handleTopicBlur(e.target.value)}
+                            readOnly={!user}
+                            placeholder="Örn: Kalıcılık / Fiyat"
+                            className={`bg-transparent outline-none font-semibold text-blue-700 transition-colors text-[11px] ${user ? 'hover:bg-white focus:bg-white focus:ring-1 focus:ring-blue-200 px-1 rounded cursor-text' : 'cursor-default'}`}
+                        />
+                    </div>
+
+                    {/* Copy Count Badge */}
+                    {localCopyCount > 0 && (
+                        <span className="flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200/70 px-1.5 py-0.2 rounded-full mr-1 shrink-0" title={`${localCopyCount} kez kopyalandı`}>
+                            <Flame size={10} className="fill-amber-500 text-amber-500" />
+                            <span>{localCopyCount}</span>
+                        </span>
+                    )}
                 </div>
 
                 {/* Action buttons (Copy, Archive, Delete) */}
                 <div className="absolute top-2.5 right-2.5 flex opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-xs border border-slate-200 rounded-lg shrink-0 overflow-hidden">
-                    <CopyBtn text={content} />
+                    <CopyBtn text={content} onCopy={handleCopy} />
                     {user && (
                         <>
                             <div className="w-px bg-slate-200"></div>
@@ -496,9 +660,9 @@ export function EditableReplyCard({ reply, user, categories, department }: { rep
                 </div>
             </div>
 
-            {/* Card Body (Adjusted to ~6cm / 225px height) */}
-            <div className="p-3.5 flex-1 flex flex-col">
-                <div className="mb-2 flex items-center justify-between">
+            {/* Card Body */}
+            <div className="p-3.5 flex-1 flex flex-col min-h-0">
+                <div className="mb-2 flex items-center justify-between shrink-0">
                     <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Hizmet:</span>
                     <select
                         value={categories.includes(category) ? category : ""}
@@ -519,8 +683,21 @@ export function EditableReplyCard({ reply, user, categories, department }: { rep
                     onBlur={(e) => handleContentBlur(e.target.value)}
                     readOnly={!user}
                     rows={4}
-                    className={`w-full text-xs text-slate-600 outline-none resize-y min-h-[110px] max-h-[220px] leading-relaxed ${user ? 'hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-blue-100 p-1.5 -m-1 rounded-lg transition-colors mt-1' : 'bg-transparent cursor-default mt-1'}`}
+                    className={`w-full flex-1 text-xs text-slate-600 outline-none resize-none min-h-[110px] leading-relaxed ${user ? 'hover:bg-slate-50 focus:bg-slate-50 focus:ring-1 focus:ring-blue-100 p-1.5 -m-1 rounded-lg transition-colors mt-1' : 'bg-transparent cursor-default mt-1'}`}
                 />
+            </div>
+
+            {/* Corner Resize Handle (Kulakçık) */}
+            <div
+                onMouseDown={handleResizeMouseDown}
+                onDoubleClick={handleResetHeight}
+                className="absolute bottom-1 right-1 w-3.5 h-3.5 cursor-se-resize flex items-end justify-end text-slate-300 hover:text-blue-600 transition-colors group/resize select-none"
+                title="Kulağından çekerek uzatın / Çift tıklayarak standart boya sıfırlayın"
+            >
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none" className="stroke-current stroke-[1.5]">
+                    <line x1="7" y1="1" x2="1" y2="7" />
+                    <line x1="7" y1="4.5" x2="4.5" y2="7" />
+                </svg>
             </div>
         </div>
     );
@@ -581,7 +758,7 @@ function QuickReplyForm({ user, categories, department, defaultCategory }: { use
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Hizmet Kategorisi</label>
                     <select name="category" defaultValue={defaultCategory || categories[0]} className="w-full border-slate-300 border rounded-xl px-3 py-2 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
-                        {categories.filter(c => c !== "Tümü" && c !== "Kampanyalar").map(cat => (
+                        {categories.filter(c => c !== "Tümü" && c !== "Kampanyalar" && c !== "Sık Kullanılanlar").map(cat => (
                             <option key={cat} value={cat}>{cat}</option>
                         ))}
                     </select>
@@ -598,7 +775,7 @@ function QuickReplyForm({ user, categories, department, defaultCategory }: { use
     );
 }
 
-function CopyBtn({ text }: { text: string }) {
+function CopyBtn({ text, onCopy }: { text: string, onCopy?: () => void }) {
     const [copied, setCopied] = useState(false);
 
     return (
@@ -606,6 +783,7 @@ function CopyBtn({ text }: { text: string }) {
             onClick={() => {
                 navigator.clipboard.writeText(text);
                 setCopied(true);
+                if (onCopy) onCopy();
                 setTimeout(() => setCopied(false), 2000);
             }}
             className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"

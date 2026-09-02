@@ -93,6 +93,8 @@ model QuickReply {
   content    String
   category   String   @default("Diğer")
   topic      String?  @default("İşlem Detayı")
+  isPinned   Boolean  @default(false)
+  copyCount  Int      @default(0)
   order      Int      @default(0)
   isArchived Boolean  @default(false)
   createdAt  DateTime @default(now())

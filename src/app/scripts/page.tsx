@@ -40,8 +40,10 @@ export default async function ScriptsPage(props: { searchParams: Promise<{ dept?
 
     try {
         await prisma.$executeRawUnsafe(`ALTER TABLE "QuickReply" ADD COLUMN IF NOT EXISTS "topic" TEXT DEFAULT 'İşlem Detayı';`);
+        await prisma.$executeRawUnsafe(`ALTER TABLE "QuickReply" ADD COLUMN IF NOT EXISTS "isPinned" BOOLEAN DEFAULT false;`);
+        await prisma.$executeRawUnsafe(`ALTER TABLE "QuickReply" ADD COLUMN IF NOT EXISTS "copyCount" INTEGER DEFAULT 0;`);
     } catch (e) {
-        console.error("Auto-migration error for topic column:", e);
+        console.error("Auto-migration error for QuickReply columns:", e);
     }
 
     let categoriesList = await prisma.quickReplyCategory.findMany({ 

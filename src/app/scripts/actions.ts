@@ -43,6 +43,27 @@ export async function updateQuickReply(id: string, data: Partial<{ title: string
     revalidatePath("/scripts");
 }
 
+export async function togglePinQuickReply(id: string, department: string) {
+    const record = await prisma.quickReply.findFirst({ where: { id, department } });
+    if (!record) return;
+    await prisma.quickReply.update({
+        where: { id },
+        data: { isPinned: !record.isPinned }
+    });
+    revalidatePath("/scripts");
+}
+
+export async function incrementCopyCount(id: string, department: string) {
+    try {
+        await prisma.quickReply.updateMany({
+            where: { id, department },
+            data: { copyCount: { increment: 1 } }
+        });
+    } catch (e) {
+        console.error("incrementCopyCount error:", e);
+    }
+}
+
 export async function addCategory(name: string, department?: string) {
     const dept = department || 'KLINIK';
     const trimmed = name.trim();
