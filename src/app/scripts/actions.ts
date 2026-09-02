@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { recordUserCopy } from "@/lib/analytics";
 
 export async function addScript(data: { type: string, name: string, content: string }) {
     await prisma.script.create({
@@ -59,6 +60,7 @@ export async function incrementCopyCount(id: string, department: string) {
             where: { id, department },
             data: { copyCount: { increment: 1 } }
         });
+        await recordUserCopy(department);
     } catch (e) {
         console.error("incrementCopyCount error:", e);
     }
