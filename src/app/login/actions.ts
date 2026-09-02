@@ -49,3 +49,37 @@ export async function logout() {
     cookieStore.delete("session");
     redirect("/");
 }
+
+import { getSitePassword } from "@/lib/siteLock";
+
+export async function resetAdminPassword(formData: FormData) {
+    const sitePassword = formData.get("sitePassword") as string;
+    const newPassword = formData.get("newPassword") as string;
+
+    if (!sitePassword || !newPassword) {
+        return { error: "Lütfen tüm alanları doldurun." };
+    }
+
+    const expected = await getSitePassword();
+    if (sitePassword !== expected) {
+        return { error: "Site ana giriş şifresi hatalıdır." };
+    }
+
+    if (newPassword.trim().length < 6) {
+        return { error: "Yeni şifre en az 6 karakter olmalıdır." };
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword.trim(), 10);
+
+    await prisma.user.upsert({
+        where: { email: "ugurozan@gmail.com" },
+        update: { password: hashedPassword, role: "ADMIN" },
+        create: {
+            email: "ugurozan@gmail.com",
+            password: hashedPassword,
+            role: "ADMIN"
+        }
+    });
+
+    return { success: true };
+}

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
+import crypto from "crypto";
 
 export async function ensureAnalyticsTables() {
     try {
@@ -11,7 +12,7 @@ export async function ensureAnalyticsTables() {
                 "path" TEXT NOT NULL,
                 "department" TEXT DEFAULT 'GENEL',
                 "count" INTEGER DEFAULT 1,
-                "updatedAt" TIMESTAMP DEFAULT NOW()
+                "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
         `);
         await prisma.$executeRawUnsafe(`
@@ -25,7 +26,7 @@ export async function ensureAnalyticsTables() {
                 "pageViews" INTEGER DEFAULT 0,
                 "copies" INTEGER DEFAULT 0,
                 "department" TEXT DEFAULT 'GENEL',
-                "updatedAt" TIMESTAMP DEFAULT NOW()
+                "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
         `);
         await prisma.$executeRawUnsafe(`
@@ -64,6 +65,7 @@ export async function recordPageView(rawPath: string, rawDept?: string | null) {
                 count: { increment: 1 }
             },
             create: {
+                id: crypto.randomUUID(),
                 path,
                 department,
                 count: 1
@@ -81,6 +83,7 @@ export async function recordPageView(rawPath: string, rawDept?: string | null) {
                 pageViews: { increment: 1 }
             },
             create: {
+                id: crypto.randomUUID(),
                 userEmail,
                 department,
                 pageViews: 1,
@@ -101,6 +104,7 @@ export async function recordPageView(rawPath: string, rawDept?: string | null) {
                     count: { increment: 1 }
                 },
                 create: {
+                    id: crypto.randomUUID(),
                     path,
                     department,
                     count: 1
@@ -118,6 +122,7 @@ export async function recordPageView(rawPath: string, rawDept?: string | null) {
                     pageViews: { increment: 1 }
                 },
                 create: {
+                    id: crypto.randomUUID(),
                     userEmail,
                     department,
                     pageViews: 1,
@@ -152,6 +157,7 @@ export async function recordUserCopy(department?: string) {
                 copies: { increment: 1 }
             },
             create: {
+                id: crypto.randomUUID(),
                 userEmail,
                 department: dept,
                 pageViews: 0,
@@ -172,6 +178,7 @@ export async function recordUserCopy(department?: string) {
                     copies: { increment: 1 }
                 },
                 create: {
+                    id: crypto.randomUUID(),
                     userEmail,
                     department: dept,
                     pageViews: 0,

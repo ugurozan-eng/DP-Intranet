@@ -5,7 +5,11 @@ import { ReportsView } from "./ReportsView";
 export const dynamic = 'force-dynamic';
 
 export default async function ReportsPage() {
-    await ensureAnalyticsTables();
+    try {
+        await ensureAnalyticsTables();
+    } catch (e) {
+        console.error("ensureAnalyticsTables error:", e);
+    }
 
     let pageViewsRaw: any[] = [];
     try {
@@ -35,30 +39,41 @@ export default async function ReportsPage() {
         console.error("Error fetching userActivities for reports:", e);
     }
 
-    const pageViews = pageViewsRaw.map(pv => ({
-        id: pv.id,
-        path: pv.path,
+    const safeToISO = (val: any) => {
+        if (!val) return new Date().toISOString();
+        try {
+            const d = new Date(val);
+            if (isNaN(d.getTime())) return new Date().toISOString();
+            return d.toISOString();
+        } catch {
+            return new Date().toISOString();
+        }
+    };
+
+    const pageViews = (pageViewsRaw || []).map(pv => ({
+        id: pv.id || String(Math.random()),
+        path: pv.path || '/',
         department: pv.department || 'GENEL',
-        count: pv.count,
-        updatedAt: pv.updatedAt?.toISOString() || new Date().toISOString()
+        count: typeof pv.count === 'number' ? pv.count : 1,
+        updatedAt: safeToISO(pv.updatedAt)
     }));
 
-    const quickReplies = quickRepliesRaw.map(qr => ({
+    const quickReplies = (quickRepliesRaw || []).map(qr => ({
         id: qr.id,
-        title: qr.title,
+        title: qr.title || 'Başlıksız',
         topic: qr.topic || null,
-        category: qr.category,
-        department: qr.department,
-        copyCount: qr.copyCount || 0
+        category: qr.category || 'Diğer',
+        department: qr.department || 'KLINIK',
+        copyCount: typeof qr.copyCount === 'number' ? qr.copyCount : 0
     }));
 
-    const userActivities = userActivitiesRaw.map(ua => ({
-        id: ua.id,
-        userEmail: ua.userEmail,
-        pageViews: ua.pageViews,
-        copies: ua.copies,
+    const userActivities = (userActivitiesRaw || []).map(ua => ({
+        id: ua.id || String(Math.random()),
+        userEmail: ua.userEmail || 'Misafir / Giriş Yapmamış',
+        pageViews: typeof ua.pageViews === 'number' ? ua.pageViews : 0,
+        copies: typeof ua.copies === 'number' ? ua.copies : 0,
         department: ua.department || 'GENEL',
-        updatedAt: ua.updatedAt?.toISOString() || new Date().toISOString()
+        updatedAt: safeToISO(ua.updatedAt)
     }));
 
     return (

@@ -54,15 +54,18 @@ export async function togglePinQuickReply(id: string, department: string) {
     revalidatePath("/scripts");
 }
 
-export async function incrementCopyCount(id: string, department: string) {
+export async function incrementCopyCount(id: string, department?: string) {
     try {
-        await prisma.quickReply.updateMany({
-            where: { id, department },
+        const updated = await prisma.quickReply.update({
+            where: { id },
             data: { copyCount: { increment: 1 } }
         });
-        await recordUserCopy(department);
+        await recordUserCopy(updated.department || department || 'KLINIK');
     } catch (e) {
         console.error("incrementCopyCount error:", e);
+        try {
+            await recordUserCopy(department || 'KLINIK');
+        } catch {}
     }
 }
 

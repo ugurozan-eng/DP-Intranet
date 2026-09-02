@@ -59,9 +59,20 @@ const PAGE_NAMES: { [key: string]: { name: string, icon: any } } = {
     "/reports": { name: "Raporlar & Kullanım", icon: BarChart3 },
 };
 
+function formatDateSafe(val: any): string {
+    if (!val) return "-";
+    try {
+        const d = new Date(val);
+        if (isNaN(d.getTime())) return "-";
+        return d.toLocaleDateString("tr-TR", { hour: '2-digit', minute: '2-digit' });
+    } catch {
+        return "-";
+    }
+}
+
 export function ReportsView({ 
-    pageViews, 
-    quickReplies,
+    pageViews = [], 
+    quickReplies = [],
     userActivities = []
 }: { 
     pageViews: PageViewItem[], 
@@ -71,17 +82,17 @@ export function ReportsView({
     const [selectedDept, setSelectedDept] = useState<string>("TÜMÜ");
 
     // Filter by department
-    const filteredViews = pageViews.filter(pv => {
+    const filteredViews = (pageViews || []).filter(pv => {
         if (selectedDept === "TÜMÜ") return true;
         return pv.department === selectedDept;
     });
 
-    const filteredReplies = quickReplies.filter(qr => {
+    const filteredReplies = (quickReplies || []).filter(qr => {
         if (selectedDept === "TÜMÜ") return true;
         return qr.department === selectedDept;
     });
 
-    const filteredUsers = userActivities.filter(ua => {
+    const filteredUsers = (userActivities || []).filter(ua => {
         if (selectedDept === "TÜMÜ") return true;
         return ua.department === selectedDept;
     });
@@ -91,18 +102,23 @@ export function ReportsView({
     filteredUsers.forEach(ua => {
         if (!userAggregates[ua.userEmail]) {
             userAggregates[ua.userEmail] = {
-                email: ua.userEmail,
+                email: ua.userEmail || "Misafir / Giriş Yapmamış",
                 pageViews: 0,
                 copies: 0,
-                department: ua.department,
-                lastActive: ua.updatedAt
+                department: ua.department || "GENEL",
+                lastActive: ua.updatedAt || new Date().toISOString()
             };
         }
-        userAggregates[ua.userEmail].pageViews += ua.pageViews;
-        userAggregates[ua.userEmail].copies += ua.copies;
-        if (new Date(ua.updatedAt) > new Date(userAggregates[ua.userEmail].lastActive)) {
-            userAggregates[ua.userEmail].lastActive = ua.updatedAt;
-        }
+        userAggregates[ua.userEmail].pageViews += (ua.pageViews || 0);
+        userAggregates[ua.userEmail].copies += (ua.copies || 0);
+        
+        try {
+            const uaTime = new Date(ua.updatedAt).getTime();
+            const currTime = new Date(userAggregates[ua.userEmail].lastActive).getTime();
+            if (!isNaN(uaTime) && (isNaN(currTime) || uaTime > currTime)) {
+                userAggregates[ua.userEmail].lastActive = ua.updatedAt;
+            }
+        } catch {}
     });
 
     const sortedUsers = Object.values(userAggregates)
@@ -111,7 +127,7 @@ export function ReportsView({
     // Aggregate page views by path for selected department
     const pathAggregates: { [path: string]: number } = {};
     filteredViews.forEach(pv => {
-        pathAggregates[pv.path] = (pathAggregates[pv.path] || 0) + pv.count;
+        pathAggregates[pv.path] = (pathAggregates[pv.path] || 0) + (pv.count || 0);
     });
 
     const sortedPages = Object.entries(pathAggregates)
@@ -121,7 +137,7 @@ export function ReportsView({
     const totalViews = sortedPages.reduce((sum, p) => sum + p.count, 0);
     const totalCopies = filteredReplies.reduce((sum, r) => sum + (r.copyCount || 0), 0);
     const topPage = sortedPages.length > 0 ? (PAGE_NAMES[sortedPages[0].path]?.name || sortedPages[0].path) : "-";
-    const topUser = sortedUsers.length > 0 ? sortedUsers[0].email : "-";
+    const topUser = sortedUsers.length > 0 && (sortedUsers[0].copies > 0 || sortedUsers[0].pageViews > 0) ? sortedUsers[0].email : "-";
 
     return (
         <div className="space-y-8">
@@ -265,7 +281,7 @@ export function ReportsView({
                                     <td className="px-6 py-3.5 text-right text-slate-400 text-[11px] font-mono">
                                         <div className="flex items-center justify-end gap-1">
                                             <Clock size={11} />
-                                            <span>{new Date(u.lastActive).toLocaleDateString("tr-TR", { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <span>{formatDateSafe(u.lastActive)}</span>
                                         </div>
                                     </td>
                                 </tr>
