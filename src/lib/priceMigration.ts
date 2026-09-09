@@ -3,6 +3,21 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+// Ensure SystemSetting table exists in PostgreSQL database
+async function ensureSystemSettingTable() {
+    try {
+        await prisma.$executeRawUnsafe(`
+            CREATE TABLE IF NOT EXISTS "SystemSetting" (
+                "key" TEXT PRIMARY KEY,
+                "value" TEXT NOT NULL,
+                "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+    } catch (e) {
+        // Ignore if already exists
+    }
+}
+
 // September 2026 Updated Price Mapping (Column B: Eylül Zamlı Fiyatları)
 const SEPTEMBER_PRICES: { [key: string]: number } = {
     // Botoks
@@ -134,6 +149,8 @@ function updatePricesInText(text: string): string {
 // 1. BACKUP & APPLY MIGRATION (ONLY KLINIK)
 export async function applyKlinikSeptemberPrices() {
     try {
+        await ensureSystemSettingTable();
+
         // Step A: Snapshot current KLINIK services & quick replies before touching
         const existingServices = await prisma.service.findMany({ where: { department: "KLINIK" } });
         const existingReplies = await prisma.quickReply.findMany({ where: { department: "KLINIK" } });
@@ -148,14 +165,18 @@ export async function applyKlinikSeptemberPrices() {
         };
 
         // Save backup to SystemSetting table
-        await prisma.systemSetting.upsert({
-            where: { key: "BACKUP_BEFORE_SEPTEMBER_2026_PRICES" },
-            update: { value: JSON.stringify(backupData) },
-            create: {
-                key: "BACKUP_BEFORE_SEPTEMBER_2026_PRICES",
-                value: JSON.stringify(backupData)
-            }
-        });
+        try {
+            await prisma.systemSetting.upsert({
+                where: { key: "BACKUP_BEFORE_SEPTEMBER_2026_PRICES" },
+                update: { value: JSON.stringify(backupData) },
+                create: {
+                    key: "BACKUP_BEFORE_SEPTEMBER_2026_PRICES",
+                    value: JSON.stringify(backupData)
+                }
+            });
+        } catch (backupErr) {
+            console.error("Backup upsert error:", backupErr);
+        }
 
         // Step B: Update Services in DB (department: KLINIK ONLY)
         for (const [treatmentName, newPrice] of Object.entries(SEPTEMBER_PRICES)) {
@@ -207,6 +228,8 @@ export async function applyKlinikSeptemberPrices() {
 // 2. ROLLBACK ACTION (EĞER SIÇARSAK TEK TIKLA GERİ ALMA)
 export async function rollbackKlinikSeptemberPrices() {
     try {
+        await ensureSystemSettingTable();
+
         const backupSetting = await prisma.systemSetting.findUnique({
             where: { key: "BACKUP_BEFORE_SEPTEMBER_2026_PRICES" }
         });
