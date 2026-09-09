@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 // September 2026 Updated Price Mapping (Column B: Eylül Zamlı Fiyatları)
-export const SEPTEMBER_PRICES: { [key: string]: number } = {
+const SEPTEMBER_PRICES: { [key: string]: number } = {
     // Botoks
     "5 Bölge Botoks": 5500,
     "3 Bölge Botoks": 5000,
@@ -78,7 +78,7 @@ export const SEPTEMBER_PRICES: { [key: string]: number } = {
 };
 
 // Replace text prices cleanly in Quick Reply & Script contents
-export function updatePricesInText(text: string): string {
+function updatePricesInText(text: string): string {
     if (!text) return text;
     let res = text;
 
@@ -172,7 +172,6 @@ export async function applyKlinikSeptemberPrices() {
         }
 
         // Step C: Update Quick Replies text contents (department: KLINIK ONLY)
-        // This ONLY edits the price numbers inside the full text, keeping every emoji, greeting, and sentence intact!
         for (const reply of existingReplies) {
             const updatedContent = updatePricesInText(reply.content);
             if (updatedContent !== reply.content) {

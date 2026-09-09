@@ -1,8 +1,22 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createUser, deleteUser } from "./actions";
-import { Trash2, Loader2, UserPlus } from "lucide-react";
+import { createUser, deleteUser, changeAdminPassword } from "./actions";
+import { 
+    Trash2, 
+    Loader2, 
+    UserPlus, 
+    ArrowUpRight, 
+    RotateCcw, 
+    CheckCircle, 
+    AlertTriangle, 
+    UserCheck, 
+    CheckCircle2, 
+    Lock, 
+    KeyRound 
+} from "lucide-react";
+import { applyKlinikSeptemberPrices, rollbackKlinikSeptemberPrices } from "@/lib/priceMigration";
+import { updateSitePassword } from "@/lib/siteLock";
 
 export function UserForm() {
     const [isPending, startTransition] = useTransition();
@@ -66,20 +80,23 @@ export function UserForm() {
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Yetki Grubu</label>
                     <select
-                        required
                         name="role"
-                        className="w-full border-slate-300 border rounded-xl px-4 py-2.5 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
                         defaultValue="USER"
+                        className="w-full border-slate-300 border rounded-xl px-4 py-2.5 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
                     >
                         <option value="USER">Kullanıcı (Kayıt Ekleyip/Silebilir, Ayarlara Giremez)</option>
-                        <option value="ADMIN">Yönetici (Admin)</option>
+                        <option value="ADMIN">Yönetici (Tüm Yetkiler ve Ayarlar Sayfası)</option>
                     </select>
                 </div>
 
                 <div className="pt-2">
-                    <button type="submit" disabled={isPending} className="w-full py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-                        {isPending && <Loader2 size={16} className="animate-spin" />}
-                        Hesabı Oluştur
+                    <button
+                        type="submit"
+                        disabled={isPending}
+                        className="w-full py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {isPending && <Loader2 size={16} className="animate-spin text-white" />}
+                        Hesap Oluştur
                     </button>
                 </div>
             </form>
@@ -93,8 +110,10 @@ export function DeleteUserButton({ id }: { id: string }) {
     return (
         <button
             onClick={() => {
-                if (confirm("Kullanıcıyı silmek istediğinize emin misiniz?")) {
-                    startTransition(() => deleteUser(id));
+                if (confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) {
+                    startTransition(async () => {
+                        await deleteUser(id);
+                    });
                 }
             }}
             disabled={isPending}
@@ -105,9 +124,6 @@ export function DeleteUserButton({ id }: { id: string }) {
         </button>
     );
 }
-
-import { Lock, KeyRound, CheckCircle2 } from "lucide-react";
-import { updateSitePassword } from "@/lib/siteLock";
 
 export function SitePasswordForm({ initialPassword }: { initialPassword: string }) {
     const [newPassword, setNewPassword] = useState(initialPassword);
@@ -180,9 +196,6 @@ export function SitePasswordForm({ initialPassword }: { initialPassword: string 
         </div>
     );
 }
-
-import { changeAdminPassword } from "./actions";
-import { UserCheck } from "lucide-react";
 
 export function AdminPasswordChangeForm({ adminEmail }: { adminEmail: string }) {
     const [isPending, startTransition] = useTransition();
@@ -265,9 +278,6 @@ export function AdminPasswordChangeForm({ adminEmail }: { adminEmail: string }) 
         </div>
     );
 }
-
-import { applyKlinikSeptemberPrices, rollbackKlinikSeptemberPrices } from "@/lib/priceMigration";
-import { ArrowUpRight, RotateCcw, CheckCircle, AlertTriangle } from "lucide-react";
 
 export function PriceMigrationManager() {
     const [isPending, startTransition] = useTransition();
