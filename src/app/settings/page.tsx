@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { UserForm, DeleteUserButton, SitePasswordForm, AdminPasswordChangeForm } from "./ClientComponents";
+import { UserForm, DeleteUserButton, SitePasswordForm, AdminPasswordChangeForm, PriceMigrationManager } from "./ClientComponents";
 import { getSitePassword } from "@/lib/siteLock";
 
 export const dynamic = 'force-dynamic';
@@ -31,6 +31,8 @@ export default async function SettingsPage() {
             </div>
 
             <AdminPasswordChangeForm adminEmail={user.email} />
+
+            <PriceMigrationManager />
 
             <SitePasswordForm initialPassword={currentSitePassword} />
 

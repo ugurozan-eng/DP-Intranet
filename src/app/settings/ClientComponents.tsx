@@ -265,3 +265,88 @@ export function AdminPasswordChangeForm({ adminEmail }: { adminEmail: string }) 
         </div>
     );
 }
+
+import { applyKlinikSeptemberPrices, rollbackKlinikSeptemberPrices } from "@/lib/priceMigration";
+import { ArrowUpRight, RotateCcw, CheckCircle, AlertTriangle } from "lucide-react";
+
+export function PriceMigrationManager() {
+    const [isPending, startTransition] = useTransition();
+    const [msg, setMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+    const handleApply = () => {
+        if (!confirm("⚠️ DİKKAT: KLİNİK departmanındaki tüm işlem fiyatları ve hazır mesaj şablonlarındaki fiyatlar Eylül Zamlı Fiyatları ile güncellenecektir. İşlemden önce otomatik tam yedek alınacaktır. Onaylıyor musunuz?")) return;
+
+        startTransition(async () => {
+            const res = await applyKlinikSeptemberPrices();
+            if (res.error) {
+                setMsg({ type: 'error', text: res.error });
+            } else {
+                setMsg({ type: 'success', text: res.message || "Fiyatlar başarıyla güncellendi!" });
+            }
+        });
+    };
+
+    const handleRollback = () => {
+        if (!confirm("⚠️ GERİ YÜKLEME: Sistemdeki tüm fiyatlar ve mesaj şablonları güncelleme öncesindeki orijinal haline döndürülecektir. Emin misiniz?")) return;
+
+        startTransition(async () => {
+            const res = await rollbackKlinikSeptemberPrices();
+            if (res.error) {
+                setMsg({ type: 'error', text: res.error });
+            } else {
+                setMsg({ type: 'success', text: res.message || "Yedek başarıyla geri yüklendi!" });
+            }
+        });
+    };
+
+    return (
+        <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm mb-10 w-full max-w-2xl">
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <div className="bg-amber-50 p-2.5 rounded-xl text-amber-600">
+                        <ArrowUpRight size={22} />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-lg text-slate-800">Klinik Fiyat Güncelleme (Eylül Zamları)</h3>
+                        <p className="text-xs text-slate-500">Sadece Klinik departmanının fiyatlarını ve hazır yanıtlarını tek tıkla günceller veya geri alır.</p>
+                    </div>
+                </div>
+            </div>
+
+            {msg && (
+                <div className={`p-4 rounded-xl mb-5 text-xs font-semibold flex items-center gap-2.5 ${
+                    msg.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+                }`}>
+                    {msg.type === 'success' ? <CheckCircle size={16} className="text-emerald-600 shrink-0" /> : <AlertTriangle size={16} className="text-red-600 shrink-0" />}
+                    <span>{msg.text}</span>
+                </div>
+            )}
+
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/70 mb-5 text-xs text-slate-600 space-y-2">
+                <p>• <b>Güvenli Yedekleme:</b> Güncelle butonuna basıldığında mevcut tüm Klinik fiyatları ve hazır mesajları veritabanına otomatik yedeklenir.</p>
+                <p>• <b>Kapsam:</b> Güzellik ve Dental departmanlarına asla dokunulmaz; yalnızca <b>KLİNİK</b> güncellenir.</p>
+                <p>• <b>Geri Alma Garantisi:</b> Herhangi bir aksilikte <i>"Yedeğe Geri Dön"</i> butonuyla her şeyi anında eski haline çekebilirsiniz.</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+                <button
+                    onClick={handleApply}
+                    disabled={isPending}
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-blue-600/20 disabled:opacity-50 flex items-center gap-2"
+                >
+                    {isPending && <Loader2 size={15} className="animate-spin text-white" />}
+                    Eylül Fiyatlarını Uygula
+                </button>
+
+                <button
+                    onClick={handleRollback}
+                    disabled={isPending}
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-all border border-slate-300 disabled:opacity-50 flex items-center gap-2"
+                >
+                    <RotateCcw size={15} className="text-slate-500" />
+                    Önceki Yedeğe Geri Dön (Rollback)
+                </button>
+            </div>
+        </div>
+    );
+}

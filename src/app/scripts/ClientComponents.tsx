@@ -82,20 +82,18 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
         const activeItems = localReplies.filter(r => !r.isArchived);
 
         if (activeCategory === "Sık Kullanılanlar") {
-            return activeItems
-                .filter(r => r.isPinned || (r.copyCount && r.copyCount > 0))
-                .filter(r => {
-                    return r.title.toLowerCase().includes(query) || 
-                           r.content.toLowerCase().includes(query) ||
-                           (r.topic && r.topic.toLowerCase().includes(query));
-                })
-                .sort((a, b) => {
-                    // Pinned items first
-                    if (a.isPinned && !b.isPinned) return -1;
-                    if (!a.isPinned && b.isPinned) return 1;
-                    // Then by copyCount descending
-                    return (b.copyCount || 0) - (a.copyCount || 0);
-                });
+            const pinnedItems = activeItems.filter(r => r.isPinned);
+            const autoFrequentItems = activeItems
+                .filter(r => !r.isPinned && (r.copyCount && r.copyCount > 0))
+                .sort((a, b) => (b.copyCount || 0) - (a.copyCount || 0))
+                .slice(0, 3);
+            const frequentItems = [...pinnedItems, ...autoFrequentItems];
+
+            return frequentItems.filter(r => {
+                return r.title.toLowerCase().includes(query) || 
+                       r.content.toLowerCase().includes(query) ||
+                       (r.topic && r.topic.toLowerCase().includes(query));
+            });
         }
 
         if (activeCategory === "Kampanyalar") {
@@ -208,9 +206,9 @@ export function QuickRepliesView({ quickReplies, user, categories, rawCategories
             r.content.toLowerCase().includes("kmp")
         )).length;
 
-        const frequentCount = localReplies.filter(r => !r.isArchived && (
-            r.isPinned || (r.copyCount && r.copyCount > 0)
-        )).length;
+        const pinnedCount = localReplies.filter(r => !r.isArchived && r.isPinned).length;
+        const autoFrequentCount = localReplies.filter(r => !r.isArchived && !r.isPinned && (r.copyCount && r.copyCount > 0)).length;
+        const frequentCount = pinnedCount + Math.min(autoFrequentCount, 3);
 
         return (
             <div className="flex flex-col md:flex-row gap-5">
